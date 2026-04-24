@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Books Management | Smart Library</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/book.css">
+    <link rel="stylesheet" href="css/global-alerts.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+
+    <!-- Subtle Background Glow Effects -->
+    <div id="glow-bg-top"></div>
+    <div id="glow-bg-bottom"></div>
+
+    <div id="three-container"></div>
+
+    <header class="card header-card full-width glass">
+        <div class="user-info">
+            <div class="icon-wrapper cyan">
+                <i class="ph ph-books"></i>
+            </div>
+            <div class="user-text">
+                <h2>Books <span class="text-gradient">Inventory</span></h2>
+                <p class="subtitle"><i class="ph ph-stack"></i> Manage Library Stock</p>
+            </div>
+        </div>
+        
+        <nav class="nav-links desktop-nav" id="desktopNav">
+            <a href="three.html"><i class="ph ph-house"></i> Home</a>
+            <a href="books.html" class="active"><i class="ph ph-books"></i> Books</a>
+            <a href="users.html"><i class="ph ph-users"></i> Users</a>
+            <a href="issue.html"><i class="ph ph-arrows-left-right"></i> Issue/Return</a>
+        </nav>
+
+        <button class="menu-icon btn-icon" id="menuToggle">
+            <i class="ph ph-list"></i>
+        </button>
+    </header>
+    
+    <!-- Mobile Navigation Dropdown -->
+    <div class="dropdown-nav glass" id="dropdownNav">
+        <a href="three.html"><i class="ph ph-house"></i> Home</a>
+        <a href="books.html" class="active"><i class="ph ph-books"></i> Books</a>
+        <a href="users.html"><i class="ph ph-users"></i> Users</a>
+        <a href="issue.html"><i class="ph ph-arrows-left-right"></i> Issue/Return</a>
+    </div>
+
+    <main class="dashboard-wrapper">
+        <section class="card form-panel full-width glass">
+            <div class="section-title-bar">
+                <div class="title-left">
+                    <div class="icon-wrapper gold"><i class="ph ph-plus-circle"></i></div>
+                    <h3>Add New Book</h3>
+                </div>
+            </div>
+            
+            <form id="bookForm" class="horizontal-form">
+                <div class="form-group">
+                    <label>Title</label>
+                    <div class="input-container">
+                        <i class="ph ph-book-open"></i>
+                        <input type="text" id="book_name" placeholder="Book Name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Author</label>
+                    <div class="input-container">
+                        <i class="ph ph-pen-nib"></i>
+                        <input type="text" id="author" placeholder="Author Name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Slot S.No</label>
+                    <div class="input-container">
+                        <i class="ph ph-archive-box"></i>
+                        <input type="text" id="slot" placeholder="e.g. CS-A-101" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>ISBN</label>
+                    <div class="input-container">
+                        <i class="ph ph-barcode"></i>
+                        <input type="text" id="isbn" placeholder="978-3-16..." required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>RFID Tag</label>
+                    <div class="input-container">
+                        <i class="ph ph-wifi-high"></i>
+                        <input type="text" id="rfid" placeholder="Scan Tag..." required>
+                    </div>
+                </div>
+                <div class="form-group btn-group">
+                    <button type="submit" class="btn btn-primary"><i class="ph ph-plus"></i> Add Book</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="card books full-width glass">
+            <div class="section-title-bar">
+                <div class="title-left">
+                    <div class="icon-wrapper cyan"><i class="ph ph-books"></i></div>
+                    <h3>Library Stock</h3>
+                </div>
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search Title, Slot..." onkeyup="document.getElementById('searchBtn').click()">
+                    <button id="searchBtn" style="display:none;">Search</button>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Book Title</th>
+                            <th>Author</th>
+                            <th>Slot</th>
+                            <th>ISBN/RFID</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/book.js"></script>
+    <script src="js/global-alerts.js"></script>
+</body>
+</html>

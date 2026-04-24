@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users Registration | Smart Library</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/users.css">
+    <link rel="stylesheet" href="css/global-alerts.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+
+    <!-- Subtle Background Glow Effects -->
+    <div id="glow-bg-top"></div>
+    <div id="glow-bg-bottom"></div>
+
+    <div id="three-container"></div>
+
+    <header class="card header-card full-width glass">
+        <div class="user-info">
+            <div class="icon-wrapper cyan">
+                <i class="ph ph-users"></i>
+            </div>
+            <div class="user-text">
+                <h2>User <span class="text-gradient">Registration</span></h2>
+                <p class="subtitle"><i class="ph ph-identification-card"></i> Manage Library Accounts</p>
+            </div>
+        </div>
+        
+        <nav class="nav-links desktop-nav" id="desktopNav">
+            <a href="three.html"><i class="ph ph-house"></i> Home</a>
+            <a href="books.html"><i class="ph ph-books"></i> Books</a>
+            <a href="users.html" class="active"><i class="ph ph-users"></i> Users</a>
+            <a href="issue.html"><i class="ph ph-arrows-left-right"></i> Issue/Return</a>
+        </nav>
+
+        <button class="menu-icon btn-icon" id="menuToggle">
+            <i class="ph ph-list"></i>
+        </button>
+    </header>
+    
+    <!-- Mobile Navigation Dropdown -->
+    <div class="dropdown-nav glass" id="dropdownNav">
+        <a href="three.html"><i class="ph ph-house"></i> Home</a>
+        <a href="books.html"><i class="ph ph-books"></i> Books</a>
+        <a href="users.html" class="active"><i class="ph ph-users"></i> Users</a>
+        <a href="issue.html"><i class="ph ph-arrows-left-right"></i> Issue/Return</a>
+    </div>
+
+    <main class="dashboard-wrapper">
+        <section class="card form-panel full-width glass">
+            <div class="section-title-bar">
+                <div class="title-left">
+                    <div class="icon-wrapper gold"><i class="ph ph-user-plus"></i></div>
+                    <h3>Create New Account</h3>
+                </div>
+            </div>
+            
+            <form id="userForm" class="horizontal-form">
+                <div class="form-group">
+                    <label for="name">Display Name</label>
+                    <div class="input-container">
+                        <i class="ph ph-user"></i>
+                        <input type="text" id="name" placeholder="John Doe" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Contact Email</label>
+                    <div class="input-container">
+                        <i class="ph ph-envelope-simple"></i>
+                        <input type="email" id="email" placeholder="john@example.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Login Username</label>
+                    <div class="input-container">
+                        <i class="ph ph-at"></i>
+                        <input type="text" id="username" placeholder="johndoe123" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Login Password</label>
+                    <div class="input-container">
+                        <i class="ph ph-lock-key"></i>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">User Role</label>
+                    <div class="input-container">
+                        <i class="ph ph-shield-check"></i>
+                        <select id="role" required>
+                            <option value="" disabled selected>Select Role...</option>
+                            <option value="student">Student</option>
+                            <option value="faculty">Faculty</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="course">Course / Department</label>
+                    <div class="input-container">
+                        <i class="ph ph-buildings"></i>
+                        <select id="course" required>
+                            <option value="" disabled selected>Select Option...</option>
+                            <optgroup label="Student Courses">
+                                <option value="BTech_CS">B.Tech Computer Science</option>
+                                <option value="BTech_Cyber">B.Tech Cyber Security</option>
+                                <option value="BTech_IT">B.Tech Info. Technology</option>
+                                <option value="Other_Course">Other Course</option>
+                            </optgroup>
+                            <optgroup label="Faculty Departments">
+                                <option value="Faculty_CS">Computer Science Dept.</option>
+                                <option value="Faculty_IT">IT Dept.</option>
+                                <option value="Faculty_Library">Library Staff</option>
+                                <option value="Faculty_Admin">Administration</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group rfid-group">
+                    <label for="rfid">RFID Card Scan</label>
+                    <div class="input-container">
+                        <i class="ph ph-wifi-high"></i>
+                        <input type="text" id="rfid" placeholder="Scan tag here..." required>
+                    </div>
+                </div>
+
+                <div class="form-group btn-group align-bottom">
+                    <button type="submit" class="btn btn-primary"><i class="ph ph-check-circle"></i> Register Core Account</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    
+    <script src="js/user.js"></script>
+    <script src="js/global-alerts.js"></script>
+</body>
+</html>

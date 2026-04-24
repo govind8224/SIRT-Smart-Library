@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Issue & Return Station</title>
+    <link rel="stylesheet" href="css/book.css"> <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body class="no-scroll">
+    <div id="three-container"></div>
+    
+    <header>
+        <h1>Library Transaction Station</h1>
+        <nav><a href="books.html">Back to Inventory</a></nav>
+    </header>
+
+    <main class="transaction-container">
+        <div class="glass-panel transaction-card" id="userPanel">
+            <div class="step-badge">Step 1</div>
+            <h3>👤 Student / Faculty</h3>
+            <div id="userDisplay" class="display-box">
+                <p>Waiting for ID Card scan...</p>
+            </div>
+        </div>
+
+        <div class="glass-panel transaction-card disabled" id="bookPanel">
+            <div class="step-badge">Step 2</div>
+            <h3>📚 Book Tag</h3>
+            <div id="bookDisplay" class="display-box">
+                <p>Please scan User first</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="transactionStatus" class="status-toast">Ready to Scan</div>
+
+    <script src="js/issue.js"></script>
+</body>
+</html>

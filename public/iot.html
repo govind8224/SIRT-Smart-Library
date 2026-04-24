@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 IoT Scanner | Smart Library</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/iot.css">
+    <link rel="stylesheet" href="css/global-alerts.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+
+    <div id="glow-bg-top"></div>
+    <div id="glow-bg-bottom"></div>
+
+    <header class="card header-card full-width glass">
+        <div class="user-info">
+            <div class="icon-wrapper cyan">
+                <i class="ph ph-cpu"></i>
+            </div>
+            <div class="user-text">
+                <h2>Live Hardware <span class="text-gradient">Scanner</span></h2>
+                <p class="subtitle"><i class="ph ph-wifi-high"></i> ESP32 MQTT / Socket Bridge</p>
+            </div>
+        </div>
+
+        <nav class="nav-links desktop-nav">
+            <a href="three.html"><i class="ph ph-arrow-left"></i> End Scan Session</a>
+        </nav>
+    </header>
+
+    <main class="dashboard-wrapper">
+        <section class="scanner-arena glass card">
+
+            <div class="left-panel">
+                <div class="radar-container" id="radarSys">
+                    <div class="radar-pulse circle-1"></div>
+                    <div class="radar-pulse circle-2"></div>
+                    <div class="radar-pulse circle-3"></div>
+                    <div class="scanner-core">
+                        <i class="ph ph-identification-card" id="coreIcon"></i>
+                    </div>
+                </div>
+
+                <h3 id="scanStatusText">Awaiting Hardware Scan...</h3>
+                <p class="sub-status" id="scanSubStatus">Hold your RFID Card near the ESP32 module</p>
+
+                <button class="btn btn-outline" id="mockScanBtn" style="margin-top: 30px;"><i
+                        class="ph ph-magic-wand"></i> Force Test Scan Trigger</button>
+            </div>
+
+            <div class="right-panel">
+                <div class="user-profile-card glass hidden" id="userCard">
+                    <div class="badge-tag" id="userRoleBadge"><i class="ph ph-student"></i> Student</div>
+
+                    <div class="card-header">
+                        <div class="avatar-circle">
+                            <i class="ph ph-user"></i>
+                        </div>
+                        <div class="info">
+                            <h2 id="scannedName">Loading...</h2>
+                            <p id="scannedId">RFID: -------</p>
+                        </div>
+                    </div>
+
+                    <div class="security-readout fade-in">
+                        <i class="ph ph-shield-check" style="color:var(--success); font-size:24px;"></i>
+                        <span style="color:var(--success); font-weight:600; font-size: 15px;">Identity Verified
+                            Securely</span>
+                    </div>
+                </div>
+
+                <div id="noCardPlaceholder" class="placeholder-box fade-in">
+                    <i class="ph ph-sim-card"></i>
+                    <p>Hardware bridge open. Awaiting physical credentials...</p>
+                </div>
+
+            </div>
+
+        </section>
+    </main>
+
+    <script src="js/iot.js"></script>
+    <script src="js/global-alerts.js"></script>
+</body>
+
+</html>

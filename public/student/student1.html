@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Student Dashboard - SIRT</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/student1.css">
+</head>
+<body>
+
+    <!-- Subtle Background Glow Effects -->
+    <div id="glow-bg-top"></div>
+    <div id="glow-bg-bottom"></div>
+
+    <input type="text" id="rfidInput" autofocus />
+
+    <main class="dashboard-wrapper">
+        
+        <!-- Header Section -->
+        <header class="card header-card full-width glass">
+            <div class="user-info">
+                <div class="avatar-container" id="userAvatar">
+                    <i class="ph ph-graduation-cap"></i>
+                </div>
+                <div class="user-text">
+                    <h2>Welcome, <span id="name" class="text-gradient">Student</span></h2>
+                    <p class="subtitle"><i class="ph ph-student"></i> Student Portal</p>
+                </div>
+            </div>
+            <button class="btn btn-logout" onclick="logout()">
+                <i class="ph ph-sign-out"></i> Logout
+            </button>
+        </header>
+
+        <!-- Grid Container -->
+        <div class="grid-container">
+            <!-- Profile Details -->
+            <section class="card profile glass">
+                <div class="card-header">
+                    <div class="icon-wrapper"><i class="ph ph-user"></i></div>
+                    <h3>Profile Details</h3>
+                </div>
+                <div class="info-group">
+                    <p><span class="label"><i class="ph ph-buildings"></i> Dept:</span> <strong id="course">---</strong></p> 
+                    <p><span class="label"><i class="ph ph-envelope-simple"></i> Email:</span> <strong id="email">---</strong></p>
+                </div>
+            </section>
+
+            <!-- RFID Scanner -->
+            <section class="card rfid glass">
+                <div class="card-header">
+                    <div class="icon-wrapper cyan"><i class="ph ph-wifi-high"></i></div>
+                    <h3>RFID Scanner</h3>
+                </div>
+                <p class="subtitle text-center">Tap your ID card on the reader</p>
+                <div id="statusBox" class="status-box waiting">
+                    <div class="pulse-ring">
+                        <i class="ph ph-identification-card"></i>
+                    </div>
+                    <span id="statusText">Waiting for scan...</span>
+                </div>
+            </section>
+        </div>
+
+        <!-- Overdue Fine -->
+        <section class="card fine full-width glass">
+            <div class="fine-content">
+                <div class="icon-wrapper red"><i class="ph ph-wallet"></i></div>
+                <div>
+                    <h3>Overdue Fine</h3>
+                    <p>Total Fine: <strong>₹<span id="fineAmount">0</span></strong></p>
+                </div>
+            </div>
+            <button onclick="payFine()" class="btn btn-pay"><i class="ph ph-currency-inr"></i> Pay Now</button>
+        </section>
+
+        <!-- Books Table -->
+        <section class="card books full-width glass">
+            <div class="section-title-bar">
+                <div class="title-left">
+                    <div class="icon-wrapper gold"><i class="ph ph-books"></i></div>
+                    <h3>My Library Books</h3>
+                </div>
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="searchBook" placeholder="Search Book Title..." onkeyup="searchBook()">
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Slot</th>
+                            <th>Author</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookTable">
+                        <!-- Content dynamically loaded via student1.js -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- AI Recommendation Engine -->
+        <section class="card ai-recommendations full-width glass" style="border-top: 4px solid #a855f7; display:none; animation: fadeIn 1s ease-in-out;" id="aiRecommendationPanel">
+            <div class="section-title-bar" style="margin-bottom: 5px;">
+                <div class="title-left">
+                    <div class="icon-wrapper" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;"><i class="ph ph-sparkle"></i></div>
+                    <h3><span style="background: -webkit-linear-gradient(45deg, #a855f7, #d946ef); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:700;">AI Recommended For You</span></h3>
+                </div>
+                <div class="glow-pulse-sm" style="width:10px; height:10px; background:#d946ef; border-radius:50%; box-shadow: 0 0 10px #d946ef; animation: pulse 2s infinite;"></div>
+            </div>
+            <p class="subtitle" style="margin-left:55px; margin-bottom: 20px;">Based on your current coursework, the virtual librarian suggests checking out:</p>
+            <div id="aiRecBoxes" style="display: flex; gap: 15px; padding: 10px 5px; flex-wrap: wrap;">
+                <!-- Filled via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- QR Modal -->
+    <div id="qrModal" class="qr-modal">
+        <div class="qr-content glass">
+            <div class="modal-header">
+                <h3><i class="ph ph-qr-code"></i> Scan to Pay</h3>
+                <button class="btn-icon" onclick="closeQR()"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="qr-image-wrapper">
+                <img id="qrImage" src="" alt="QR Code">
+            </div>
+            <div class="qr-details">
+                <p>Amount: <strong>₹<span id="qrAmount">0</span></strong></p>
+                <p class="subtitle"><i class="ph ph-lock-key"></i> Secure UPI Transaction</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="student1.js"></script>
+</body>
+</html>

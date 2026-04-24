@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D Smart Library | Complete Admin Control</title>
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            overflow: hidden;
+            height: 100vh;
+            color: #fff;
+        }
+
+        /* 3D Canvas Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Main UI Overlay */
+        .ui-overlay {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(3px);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Stylish Header */
+        .library-header {
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            animation: floatGlow 3s ease-in-out infinite;
+        }
+        .library-name {
+            font-size: 3.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFE6B0, #FFB347, #FF8C42, #FFD966);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(255,180,60,0.6);
+            letter-spacing: 2px;
+        }
+        .library-sub {
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            color: #FFE2B5;
+            text-shadow: 0 0 8px rgba(0,0,0,0.5);
+        }
+
+        /* RFID Scan Panel */
+        .scan-panel {
+            background: rgba(10, 10, 25, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            padding: 18px 30px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 200, 100, 0.6);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3), 0 0 15px rgba(255,180,0,0.3);
+            text-align: center;
+        }
+        .scan-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #FFE6AA;
+        }
+        .rfid-input-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #rfidInput {
+            background: rgba(0,0,0,0.7);
+            border: 1px solid #f7b42c;
+            padding: 12px 22px;
+            border-radius: 50px;
+            font-size: 1rem;
+            width: 280px;
+            color: #FFEFCF;
+            font-weight: 500;
+            outline: none;
+            text-align: center;
+        }
+        .scan-btn {
+            background: linear-gradient(135deg, #ffb347, #ff8c1a);
+            border: none;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-weight: bold;
+            color: #1e1a0c;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .scan-btn:hover {
+            transform: scale(1.02);
+            background: linear-gradient(135deg, #ffc15e, #ffa235);
+        }
+        .scan-status {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.5);
+            display: inline-block;
+            padding: 5px 18px;
+            border-radius: 40px;
+            color: #FFDFA5;
+        }
+        .demo-hint {
+            background: rgba(0,0,0,0.5);
+            border-radius: 40px;
+            padding: 6px 15px;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            color: #ffd58c;
+        }
+
+        /* Dashboard Container */
+        .dashboard-wrapper {
+            width: 100%;
+            max-width: 1400px;
+            margin-top: 25px;
+        }
+        .role-dashboard {
+            display: none;
+            background: rgba(15, 15, 35, 0.9);
+            backdrop-filter: blur(16px);
+            border-radius: 48px;
+            overflow: hidden;
+            border: 1px solid rgba(255,200,100,0.5);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+            animation: fadeSlideUp 0.5s ease;
+        }
+        .role-dashboard.active-dashboard {
+            display: block;
+        }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .dash-header {
+            padding: 25px 30px 15px;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(255,180,70,0.2), rgba(255,140,30,0.1));
+            border-bottom: 1px solid rgba(255,200,100,0.4);
+        }
+        .dash-header i {
+            font-size: 3rem;
+            color: #ffcf6e;
+        }
+        .dash-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff0cc, #FFD966);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .dash-content {
+            padding: 25px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+        .admin-section {
+            background: rgba(0,0,0,0.45);
+            border-radius: 32px;
+            padding: 20px;
+            border: 1px solid rgba(255,200,100,0.25);
+        }
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            color: #ffcf6e;
+            border-left: 4px solid #ffb347;
+            padding-left: 15px;
+        }
+        .auth-grid, .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .auth-card {
+            background: rgba(255,200,100,0.12);
+            border-radius: 24px;
+            padding: 16px;
+            transition: 0.2s;
+        }
+        .auth-card:hover {
+            background: rgba(255,200,100,0.22);
+        }
+        .auth-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #FFE2A4;
+        }
+        .auth-detail {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #ddd0b0;
+        }
+        .stat-card {
+            background: rgba(0,0,0,0.5);
+            border-radius: 24px;
+            padding: 16px;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffcf6e;
+        }
+        .book-list, .member-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .list-item {
+            background: rgba(255,255,255,0.08);
+            margin: 6px 0;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .registration-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .form-row input, .form-row select {
+            flex: 1;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #ffb347;
+            padding: 12px 16px;
+            border-radius: 40px;
+            color: white;
+            outline: none;
+        }
+        .reg-btn {
+            background: #ffb347;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .reg-btn:hover {
+            background: #ffcc77;
+        }
+        .close-dash-btn {
+            background: rgba(255,180,70,0.2);
+            border: 1px solid #ffb347;
+            padding: 8px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .action-footer {
+            padding: 15px 30px 25px;
+            text-align: right;
+        }
+        @keyframes floatGlow {
+            0% { text-shadow: 0 0 5px #ffb347; transform: translateY(0px);}
+            50% { text-shadow: 0 0 25px #ffdf80; transform: translateY(-5px);}
+            100% { text-shadow: 0 0 5px #ffb347; transform: translateY(0px);}
+        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #1e1e2a; }
+        ::-webkit-scrollbar-thumb { background: #ffb347; border-radius: 10px; }
+        @media (max-width: 750px) {
+            .library-name { font-size: 2rem; }
+            .dash-content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+
+<div class="ui-overlay">
+    <div class="library-header">
+        <div class="library-name">📚 SMART LIBRARY SYSTEM 3.0</div>
+        <div class="library-sub">RFID POWERED | INTELLIGENT ACCESS</div>
+    </div>
+
+    <div class="scan-panel">
+        <div class="scan-title"><i class="fas fa-rss"></i> RFID SCAN TERMINAL <i class="fas fa-id-card"></i></div>
+        <div class="rfid-input-group">
+            <input type="text" id="rfidInput" placeholder="Enter RFID (STU001 / FAC202 / ADM999)" autocomplete="off">
+            <button class="scan-btn" id="scanBtn"><i class="fas fa-qrcode"></i> SCAN</button>
+        </div>
+        <div id="scanStatus" class="scan-status">⚡ Ready — Scan your RFID card</div>
+        <div class="demo-hint"><i class="fas fa-info-circle"></i> Demo Cards: STU001 (Student) | FAC202 (Faculty) | ADM999 (Admin)</div>
+    </div>
+
+    <div class="dashboard-wrapper" id="dashboardWrapper">
+        <!-- Student Dashboard (simplified) -->
+        <div id="studentDashboard" class="role-dashboard">
+            <div class="dash-header"><i class="fas fa-user-graduate"></i><h2>Student Library Portal</h2></div>
+            <div class="dash-content" id="studentContent"></div>
+            <div class="action-footer"><button class="close-dash-btn" onclick="hideAllDashboards()">Exit Portal</button></div>
+        </div>
+
+        <!-- Faculty Dashboard -->
+        <div id="facultyDashboard" class="role-dashboard">
+            <div class="dash-header"><i class="fas fa-chalkboard-user"></i><h2>Faculty Research Portal</h2></div>
+            <div class="dash-content" id="facultyContent"></div>
+            <div class="action-footer"><button class="close-dash-btn" onclick="hideAllDashboards()">Exit Portal</button></div>
+        </div>
+
+        <!-- Admin Dashboard with FULL Sections: Registration + Detailed Authorities + Live Stats -->
+        <div id="adminDashboard" class="role-dashboard">
+            <div class="dash-header">
+                <i class="fas fa-user-shield"></i>
+                <h2>Admin Control Center</h2>
+                <div class="dash-sub">Full Authorities • Library Metrics • Registration</div>
+            </div>
+            <div class="dash-content" id="adminContent"></div>
+            <div class="action-footer"><button class="close-dash-btn" onclick="hideAllDashboards()">Exit Admin Mode</button></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.128.0/build/three.module.js';
+    
+    // ---------- 3D BACKGROUND (Same as before) ----------
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x050b1a);
+    scene.fog = new THREE.FogExp2(0x050b1a, 0.005);
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 1.5, 13);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+    
+    const ambient = new THREE.AmbientLight(0x22223b);
+    scene.add(ambient);
+    const dirLight = new THREE.DirectionalLight(0xffdd99, 1.2);
+    dirLight.position.set(3, 5, 2);
+    scene.add(dirLight);
+    const backLight = new THREE.PointLight(0x4466cc, 0.5);
+    backLight.position.set(-2, 2, -5);
+    scene.add(backLight);
+    const fillLight = new THREE.PointLight(0xffaa66, 0.7);
+    fillLight.position.set(2, 3, 4);
+    scene.add(fillLight);
+    
+    const ringGeo = new THREE.TorusGeometry(1.7, 0.08, 128, 200);
+    const ringMat = new THREE.MeshStandardMaterial({ color: 0xffaa55, emissive: 0x552200, emissiveIntensity: 0.7 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    scene.add(ring);
+    const coreSphere = new THREE.Mesh(new THREE.SphereGeometry(0.6, 48, 48), new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0xff5511, emissiveIntensity: 0.5 }));
+    scene.add(coreSphere);
+    
+    const starsCount = 2200;
+    const starsGeo = new THREE.BufferGeometry();
+    const starsPos = new Float32Array(starsCount * 3);
+    for (let i = 0; i < starsCount; i++) {
+        starsPos[i*3] = (Math.random() - 0.5) * 220;
+        starsPos[i*3+1] = (Math.random() - 0.5) * 120;
+        starsPos[i*3+2] = (Math.random() - 0.5) * 90 - 40;
+    }
+    starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+    const starsMat = new THREE.PointsMaterial({ color: 0xffcc99, size: 0.1, transparent: true });
+    const stars = new THREE.Points(starsGeo, starsMat);
+    scene.add(stars);
+    
+    let time = 0;
+    function animate3D() {
+        requestAnimationFrame(animate3D);
+        time += 0.012;
+        ring.rotation.x = Math.sin(time * 0.4) * 0.5;
+        ring.rotation.y = time * 0.6;
+        coreSphere.rotation.x = time * 0.3;
+        coreSphere.rotation.y = time * 0.5;
+        stars.rotation.y = time * 0.02;
+        camera.position.x += (0 - camera.position.x) * 0.04;
+        camera.position.y += (0.4 - camera.position.y) * 0.04;
+        camera.lookAt(0, 0.8, 0);
+        renderer.render(scene, camera);
+    }
+    animate3D();
+    window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+    
+    // ----------------------- EXTENDED LIBRARY DATA -----------------------
+    // Books Database
+    let booksDB = [
+        { id: "B001", title: "Artificial Intelligence", author: "Norvig", status: "Issued", issuedTo: "STU001" },
+        { id: "B002", title: "Data Structures", author: "Cormen", status: "Available" },
+        { id: "B003", title: "Machine Learning", author: "Mitchell", status: "Issued", issuedTo: "STU001" },
+        { id: "B004", title: "Deep Learning", author: "Goodfellow", status: "Issued", issuedTo: "FAC202" },
+        { id: "B005", title: "Cloud Computing", author: "Buyya", status: "Available" },
+        { id: "B006", title: "Computer Networks", author: "Tanenbaum", status: "Available" },
+        { id: "B007", title: "Database Systems", author: "Silberschatz", status: "Issued", issuedTo: "STU005" },
+        { id: "B008", title: "Cyber Security", author: "Stallings", status: "Available" }
+    ];
+    
+    let membersDB = [
+        { id: "STU001", name: "Aarav Mehta", type: "Student", booksIssued: 3 },
+        { id: "STU005", name: "Riya Sharma", type: "Student", booksIssued: 1 },
+        { id: "FAC202", name: "Dr. Priya Sharma", type: "Faculty", booksIssued: 5 },
+        { id: "FAC101", name: "Prof. Anil Kumar", type: "Faculty", booksIssued: 2 }
+    ];
+    
+    let activeLoans = booksDB.filter(b => b.status === "Issued").map(b => ({ book: b.title, borrower: b.issuedTo, due: "15 April 2026" }));
+    let pendingReturns = [{ book: "Deep Learning", borrower: "FAC202", overdue: "2 days" }, { book: "AI", borrower: "STU001", due: "Tomorrow" }];
+    let todayVisits = 89;
+    
+    // Student & Faculty static info for dashboards
+    const studentData = { name: "Aarav Mehta", id: "STU001", department: "CSE", semester: "4th", books: ["AI", "Data Structures", "ML"], fine: "₹0", status: "Active" };
+    const facultyData = { name: "Dr. Priya Sharma", id: "FAC202", department: "CSE", resources: 5, status: "Premium Faculty" };
+    
+    // Helper to populate admin dashboard with dynamic data (Registration + Detailed Authorities + Live Stats)
+    function populateAdminDashboard() {
+        const container = document.getElementById('adminContent');
+        
+        // 1. Registration Section (Student/Faculty)
+        const registrationHTML = `
+            <div class="admin-section">
+                <div class="section-title"><i class="fas fa-user-plus"></i> User Registration (Student / Faculty)</div>
+                <div class="registration-form">
+                    <div class="form-row">
+                        <input type="text" id="regName" placeholder="Full Name" autocomplete="off">
+                        <select id="regType">
+                            <option value="Student">Student</option>
+                            <option value="Faculty">Faculty</option>
+                        </select>
+                        <input type="text" id="regDept" placeholder="Department">
+                    </div>
+                    <div class="form-row">
+                        <input type="text" id="regID" placeholder="Unique ID (e.g., STU999)">
+                        <button class="reg-btn" id="registerUserBtn"><i class="fas fa-save"></i> Register User</button>
+                    </div>
+                    <div id="regStatus" style="font-size:0.8rem; color:#ffd966;"></div>
+                </div>
+            </div>
+        `;
+        
+        // 2. Granted Authorities with detailed sub-sections (each authority has inner details)
+        const authorities = [
+            { name: "👥 User Management", details: "Add/Remove students & faculty, edit profiles, view borrowing history, reset passwords, manage roles." },
+            { name: "📚 Inventory Full Control", details: "Add/Delete books, update catalog, assign ISBN, manage copies, view stock levels, book locations." },
+            { name: "🔓 RFID Override", details: "Manually register RFID tags, reassign cards, bulk RFID import, access logs, emergency unlock." },
+            { name: "💰 Fine Management", details: "Set fine rates, waive penalties, generate receipts, view pending fines, daily fine collection reports." },
+            { name: "📊 Audit Logs", details: "Track all admin actions, user logins, book transactions, system changes, export logs to CSV." },
+            { name: "🔄 System Backup", details: "Schedule automatic backups, restore previous states, cloud sync, data export/import." },
+            { name: "📈 Analytics", details: "Usage statistics, popular books, peak hours, user engagement reports, predictive analysis." }
+        ];
+        
+        let authHTML = `<div class="admin-section"><div class="section-title"><i class="fas fa-key"></i> Granted Authorities (Full Access)</div><div class="auth-grid">`;
+        authorities.forEach(auth => {
+            authHTML += `<div class="auth-card"><div class="auth-name">${auth.name}</div><div class="auth-detail">${auth.details}</div></div>`;
+        });
+        authHTML += `</div></div>`;
+        
+        // 3. Live Library Stats: Books, Members, Active Loans, Pending, Today Visits (detailed lists)
+        const availableBooks = booksDB.filter(b => b.status === "Available");
+        const issuedBooks = booksDB.filter(b => b.status === "Issued");
+        
+        const booksListHTML = `<div class="stat-card"><div class="stat-number">📚 ${booksDB.length} Total Books</div>
+            <div><strong>Available:</strong> ${availableBooks.length} | <strong>Issued:</strong> ${issuedBooks.length}</div>
+            <div class="book-list">${booksDB.map(b => `<div class="list-item"><span>${b.title} (${b.id})</span><span>${b.status} ${b.issuedTo ? '→ '+b.issuedTo : ''}</span></div>`).join('')}</div></div>`;
+        
+        const membersListHTML = `<div class="stat-card"><div class="stat-number">👥 ${membersDB.length} Registered Members</div>
+            <div class="member-list">${membersDB.map(m => `<div class="list-item"><span>${m.name} (${m.id})</span><span>${m.type} | 📖 ${m.booksIssued} books</span></div>`).join('')}</div></div>`;
+        
+        const loansHTML = `<div class="stat-card"><div class="stat-number">📖 Active Loans: ${activeLoans.length}</div>
+            <div class="book-list">${activeLoans.map(l => `<div class="list-item"><span>${l.book}</span><span>Borrower: ${l.borrower}</span><span>Due: ${l.due}</span></div>`).join('')}</div></div>`;
+        
+        const pendingHTML = `<div class="stat-card"><div class="stat-number">⏳ Pending Returns: ${pendingReturns.length}</div>
+            <div class="book-list">${pendingReturns.map(p => `<div class="list-item"><span>${p.book}</span><span>${p.borrower}</span><span class="badge-status" style="background:#ff8866;">${p.overdue || 'Due soon'}</span></div>`).join('')}</div></div>`;
+        
+        const visitsHTML = `<div class="stat-card"><div class="stat-number">🚪 Today Visits: ${todayVisits}</div><div>Peak hour: 2-3 PM | Weekly avg: 412</div></div>`;
+        
+        const statsGrid = `<div class="admin-section"><div class="section-title"><i class="fas fa-chart-line"></i> Live Library Statistics</div>
+            <div class="stats-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px;">
+                ${booksListHTML} ${membersListHTML} ${loansHTML} ${pendingHTML} ${visitsHTML}
+            </div></div>`;
+        
+        container.innerHTML = registrationHTML + authHTML + statsGrid;
+        
+        // Attach registration event
+        const regBtn = document.getElementById('registerUserBtn');
+        if (regBtn) {
+            regBtn.onclick = () => {
+                const name = document.getElementById('regName').value.trim();
+                const type = document.getElementById('regType').value;
+                const dept = document.getElementById('regDept').value.trim();
+                const customId = document.getElementById('regID').value.trim().toUpperCase();
+                const statusDiv = document.getElementById('regStatus');
+                if (!name || !customId) {
+                    statusDiv.innerHTML = "❌ Please fill Name and Unique ID";
+                    return;
+                }
+                if (membersDB.find(m => m.id === customId)) {
+                    statusDiv.innerHTML = "❌ ID already exists!";
+                    return;
+                }
+                membersDB.push({ id: customId, name: name, type: type, booksIssued: 0, department: dept || "General" });
+                statusDiv.innerHTML = `✅ ${type} ${name} (${customId}) registered successfully!`;
+                setTimeout(() => { populateAdminDashboard(); }, 1000); // refresh
+            };
+        }
+    }
+    
+    function populateStudentDashboard() {
+        document.getElementById('studentContent').innerHTML = `
+            <div class="info-card"><strong>Name:</strong> ${studentData.name} (${studentData.id})</div>
+            <div class="info-card"><strong>Department:</strong> ${studentData.department} | ${studentData.semester}</div>
+            <div class="info-card"><strong>Issued Books:</strong> ${studentData.books.join(", ")}</div>
+            <div class="info-card"><strong>Fine:</strong> ${studentData.fine} | <span class="badge-status">${studentData.status}</span></div>
+        `;
+    }
+    function populateFacultyDashboard() {
+        document.getElementById('facultyContent').innerHTML = `
+            <div class="info-card"><strong>Name:</strong> ${facultyData.name} (${facultyData.id})</div>
+            <div class="info-card"><strong>Department:</strong> ${facultyData.department}</div>
+            <div class="info-card"><strong>Resources:</strong> ${facultyData.resources} items</div>
+            <div class="info-card"><strong>Status:</strong> <span class="badge-status">${facultyData.status}</span></div>
+        `;
+    }
+    
+    window.hideAllDashboards = function() {
+        document.getElementById('studentDashboard').classList.remove('active-dashboard');
+        document.getElementById('facultyDashboard').classList.remove('active-dashboard');
+        document.getElementById('adminDashboard').classList.remove('active-dashboard');
+        document.getElementById('scanStatus').innerHTML = "⚡ Ready — Scan your RFID card";
+    };
+    
+    function showDashboard(role) {
+        hideAllDashboards();
+        if (role === 'student') { populateStudentDashboard(); document.getElementById('studentDashboard').classList.add('active-dashboard'); document.getElementById('scanStatus').innerHTML = "🎓 Student Portal Opened"; }
+        else if (role === 'faculty') { populateFacultyDashboard(); document.getElementById('facultyDashboard').classList.add('active-dashboard'); document.getElementById('scanStatus').innerHTML = "📚 Faculty Portal Opened"; }
+        else if (role === 'admin') { populateAdminDashboard(); document.getElementById('adminDashboard').classList.add('active-dashboard'); document.getElementById('scanStatus').innerHTML = "🔐 Admin Control Center — Full Authorities"; }
+        document.getElementById('dashboardWrapper').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function handleRFIDScan(rfidCode) {
+        const code = rfidCode.trim().toUpperCase();
+        document.body.style.filter = "grayscale(1)";
+        setTimeout(() => { document.body.style.filter = ""; }, 200);
+        if (code === "STU001") showDashboard('student');
+        else if (code === "FAC202") showDashboard('faculty');
+        else if (code === "ADM999") showDashboard('admin');
+        else { hideAllDashboards(); document.getElementById('scanStatus').innerHTML = "❌ Invalid RFID! Use STU001, FAC202, or ADM999"; }
+        document.getElementById('rfidInput').value = "";
+    }
+    
+    document.getElementById('scanBtn').addEventListener('click', () => { const val = document.getElementById('rfidInput').value; if(val) handleRFIDScan(val); else document.getElementById('scanStatus').innerHTML = "⚠️ Enter RFID"; });
+    document.getElementById('rfidInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('scanBtn').click(); });
+    hideAllDashboards();
+</script>
+</body>
+</html>

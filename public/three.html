@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIRT Smart Library</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/three.css">
+    <link rel="stylesheet" href="css/global-alerts.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+
+    <div id="three-container"></div>
+    <div id="glow-bg"></div>
+
+    <nav class="navbar">
+        <!-- Navigation Links -->
+        <ul class="nav-links" id="navMenu">
+            <li><a href="three.html" class="active"><i class="ph ph-house"></i> Home</a></li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" onclick="return false;"><i class="ph ph-book-open"></i> Books <i class="ph ph-caret-down"></i></a>
+                <ul class="dropdown-menu">
+                    <li><a href="books.html"><i class="ph ph-list-magnifying-glass"></i> All Books</a></li>
+                    <li><a href="add-book.html"><i class="ph ph-plus-circle"></i> Add Book</a></li>
+                    <li><a href="categories.html"><i class="ph ph-squares-four"></i> Categories</a></li>
+                </ul>
+            </li>
+            <li><a href="iot.html"><i class="ph ph-cpu"></i> IoT</a></li>
+            <li><a href="users.html"><i class="ph ph-users"></i> Users</a></li>
+            <li><a href="issue.html"><i class="ph ph-tray-arrow-up"></i> Issue</a></li>
+        </ul>
+
+        <div class="nav-right">
+            <!-- Search -->
+            <div class="search-wrapper" style="position: relative;">
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="globalSearchInput" placeholder="Search books..." oninput="executeSearch()" />
+                </div>
+                <!-- Mini Dropdown Modal -->
+                <div class="quick-results-dropdown hidden" id="searchResultsDropdown"></div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="notification">
+                <i class="ph ph-bell"></i>
+                <span class="badge-count">3</span>
+            </div>
+
+            <!-- Profile -->
+            <div class="profile" onclick="toggleProfile()">
+                <img src="https://i.pravatar.cc/40" alt="Profile" />
+                <div class="profile-menu" id="profileMenu">
+                    <p class="user-name" id="adminName">Admin</p>
+                    <a href="dashboard.html"><i class="ph ph-squares-four"></i> Dashboard</a>
+                    <a href="#"><i class="ph ph-gear"></i> Settings</a>
+                    <a href="#" onclick="logout()" class="text-red"><i class="ph ph-sign-out"></i> Logout</a>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div class="menu-icon" onclick="toggleMenu(this)">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero reveal">
+            <div class="hero-content">
+                <div class="badge-pill">🚀 Next-Gen Library Experience</div>
+                <h1>Welcome to <span class="text-gradient">SIRT Smart Library</span></h1>
+                <p>Manage Books, Track RFID, and Explore Knowledge seamlessly interconnected with real-time IoT technology.</p>
+                <div class="hero-actions">
+                    <button class="btn-primary"><a style="text-decoration: none; color: inherit;" href="https://www.sirtbhopal.ac.in/">Explore Now</a></button>
+                    <button class="btn-secondary" onclick="scrollToRfid()"><i class="ph ph-scan"></i> Scan ID</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 🔍 RFID Student Scan Panel -->
+        <section id="rfid-section" class="rfid-panel reveal">
+            <div class="section-header">
+                <h2><i class="ph ph-wifi-high"></i> Live RFID Scanner</h2>
+                <p>Hold your ID card near the ESP32 module to instantly verify and access your account.</p>
+            </div>
+            
+            <div class="scanner-container">
+                <!-- Scanner Visual -->
+                <div class="scanner-ring" id="scannerRing">
+                    <div class="ring inner"></div>
+                    <div class="ring middle"></div>
+                    <div class="ring outer"></div>
+                    <i class="ph ph-identification-card card-icon"></i>
+                </div>
+
+                <!-- Scanned Result Panel -->
+                <div class="student-card hidden" id="studentCard">
+                    <div class="card-glow"></div>
+                    <div class="card-header">
+                        <img src="https://i.pravatar.cc/80?img=11" alt="Student" class="student-avatar" />
+                        <div>
+                            <h3 id="studentName">Rahul Sharma</h3>
+                            <p id="studentId">ID: CS-2023-045</p>
+                            <span class="badge green"><i class="ph ph-check-circle"></i> Access Granted</span>
+                        </div>
+                    </div>
+                    <div class="stats">
+                        <p><i class="ph ph-books"></i> Currently Issued: <b>2</b></p>
+                        <p><i class="ph ph-clock-counter-clockwise"></i> Overdue: <b class="text-red">0</b></p>
+                    </div>
+                    <h4>Recent Books</h4>
+                    <ul id="books" class="book-list">
+                        <li><i class="ph ph-book"></i> Advanced Data Structures <span>Due: 15 Oct</span></li>
+                        <li><i class="ph ph-book"></i> Microprocessors & Interfacing <span>Due: 20 Oct</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="features reveal">
+            <div class="card glass">
+                <div class="card-icon-wrapper"><i class="ph ph-books"></i></div>
+                <h3>Book Management</h3>
+                <p>Add, update, and manage books easily with an intuitive cataloging system.</p>
+            </div>
+
+            <div class="card glass">
+                <div class="card-icon-wrapper"><i class="ph ph-cpu"></i></div>
+                <h3>RFID Tracking</h3>
+                <p>Real-time interaction using ESP32 edge devices for seamless checkouts.</p>
+            </div>
+
+            <div class="card glass dashboard-card">
+                <div class="chart-container">
+                    <canvas id="libraryChart"></canvas>
+                </div>
+                <h3>Library Analytics</h3>
+                <p>Live metrics and performance dashboard.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="js/three.js"></script>
+    <script src="js/global-alerts.js"></script>
+</body>
+</html>

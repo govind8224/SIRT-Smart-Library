@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard | Smart Library</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/global-alerts.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+
+    <!-- Subtle Background Glow Effects -->
+    <div id="glow-bg-top"></div>
+    <div id="glow-bg-bottom"></div>
+
+    <div id="three-container"></div>
+
+    <header class="card header-card full-width glass">
+        <div class="user-info">
+            <div class="icon-wrapper cyan">
+                <i class="ph ph-chart-polar"></i>
+            </div>
+            <div class="user-text">
+                <h2>Library <span class="text-gradient">Insights</span></h2>
+                <p class="subtitle"><i class="ph ph-database"></i> Live Database Analytics</p>
+            </div>
+        </div>
+        
+        <nav class="nav-links desktop-nav" id="desktopNav">
+            <a href="three.html"><i class="ph ph-arrow-left"></i> Back to Home</a>
+        </nav>
+
+        <button class="menu-icon btn-icon" id="menuToggle">
+            <i class="ph ph-list"></i>
+        </button>
+    </header>
+    
+    <!-- Mobile Navigation Dropdown -->
+    <div class="dropdown-nav glass" id="dropdownNav">
+        <a href="three.html"><i class="ph ph-arrow-left"></i> Back to Home</a>
+    </div>
+
+    <main class="dashboard-wrapper">
+        <div class="metrics-grid">
+            <!-- Books Card -->
+            <div class="card metric-card glass">
+                <div class="metric-icon gold"><i class="ph ph-books"></i></div>
+                <div class="metric-data">
+                    <p>Total Inventory</p>
+                    <h3 id="statBooks">Loading...</h3>
+                </div>
+            </div>
+
+            <!-- Active Issued Card -->
+            <div class="card metric-card glass">
+                <div class="metric-icon danger"><i class="ph ph-clock-counter-clockwise"></i></div>
+                <div class="metric-data">
+                    <p>Active Issues</p>
+                    <h3 id="statIssued">Loading...</h3>
+                </div>
+            </div>
+
+            <!-- Students Card -->
+            <div class="card metric-card glass">
+                <div class="metric-icon cyan"><i class="ph ph-student"></i></div>
+                <div class="metric-data">
+                    <p>Students Registered</p>
+                    <h3 id="statStudents">Loading...</h3>
+                </div>
+            </div>
+
+            <!-- Faculty Card -->
+            <div class="card metric-card glass">
+                <div class="metric-icon secondary"><i class="ph ph-chalkboard-teacher"></i></div>
+                <div class="metric-data">
+                    <p>Faculty Subscribed</p>
+                    <h3 id="statFaculty">Loading...</h3>
+                </div>
+            </div>
+        </div>
+
+        <section class="card chart-panel full-width glass">
+            <div class="section-title-bar">
+                <div class="title-left">
+                    <div class="icon-wrapper secondary"><i class="ph ph-chart-bar"></i></div>
+                    <h3>System Load Overview</h3>
+                </div>
+                <button class="btn btn-outline" id="refreshBtn"><i class="ph ph-arrows-clockwise"></i> Refresh</button>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="liveChart"></canvas>
+            </div>
+        </section>
+
+        <!-- ===== RECENT ISSUED BOOKS FEED ===== -->
+        <section class="card recent-issues-panel full-width glass">
+            <div class="section-title-bar">
+                <div class="title-left">
+                    <div class="icon-wrapper danger-wrap"><i class="ph ph-scroll"></i></div>
+                    <div>
+                        <h3>Recent Issued Books</h3>
+                        <p class="panel-subtitle">Latest 6 circulation records with borrower identity</p>
+                    </div>
+                </div>
+                <a href="issue.html" class="btn btn-outline view-all-btn">
+                    <i class="ph ph-arrow-square-out"></i> View Full Registry
+                </a>
+            </div>
+
+            <div id="recentIssuesGrid" class="recent-issues-grid">
+                <!-- Cards injected by JS -->
+                <div class="ri-loading"><i class="ph ph-spinner-gap ri-spin"></i> Loading recent activity...</div>
+            </div>
+        </section>
+
+    </main>
+    
+    <script src="js/dashboard.js"></script>
+    <script src="js/global-alerts.js"></script>
+</body>
+</html>
+

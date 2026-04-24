@@ -1,0 +1,312 @@
+/* =========================================
+   🎓 SMART LIBRARY - USERS REGISTRATION CSS
+   Premium Glassmorphism Dark Theme
+   ========================================= */
+
+:root {
+    --bg-dark: #050505;
+    --card-bg: rgba(20, 20, 20, 0.4);
+    --primary: #00d2ff;
+    --secondary: #3a7bd5;
+    --gold: #ffd700;
+    --gold-glow: rgba(255, 215, 0, 0.3);
+    --primary-glow: rgba(0, 210, 255, 0.3);
+    --border-light: rgba(255, 255, 255, 0.08);
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    --success: #00ff9d;
+    --danger: #ff4d4d;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+#three-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    pointer-events: none;
+}
+
+/* Background Ambient Glows */
+#glow-bg-top, #glow-bg-bottom {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    z-index: -1;
+    opacity: 0.15;
+    pointer-events: none;
+}
+#glow-bg-top { top: -200px; left: -100px; background: var(--primary); }
+#glow-bg-bottom { bottom: -200px; right: -100px; background: var(--secondary); }
+
+/* --- GLASSMORPHISM COMPONENTS --- */
+.glass {
+    background: var(--card-bg);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid var(--border-light);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.text-gradient {
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+/* --- HEADER / NAVBAR --- */
+.header-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-radius: 0 0 20px 20px;
+    border-top: none;
+    margin-bottom: 30px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.icon-wrapper {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+.icon-wrapper.cyan { background: rgba(0, 210, 255, 0.1); color: var(--primary); border: 1px solid rgba(0, 210, 255, 0.2); }
+.icon-wrapper.gold { background: rgba(255, 215, 0, 0.1); color: var(--gold); border: 1px solid rgba(255, 215, 0, 0.2); }
+
+.user-text h2 { font-size: 22px; font-weight: 600; line-height: 1.2; }
+.user-text .subtitle { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+
+/* Desktop Navigation */
+.nav-links {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    transition: 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: 8px;
+}
+
+.nav-links a:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
+.nav-links a.active { color: var(--primary); background: rgba(0, 210, 255, 0.1); border: 1px solid rgba(0, 210, 255, 0.2); }
+
+/* Menu Toggle & Mobile Dropdown */
+.menu-icon { display: none; font-size: 24px; color: var(--text-main); background: none; border: none; cursor: pointer; }
+.dropdown-nav, #dropdownNav {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 90px;
+    right: 20px;
+    border-radius: 15px;
+    padding: 10px;
+    z-index: 1000;
+}
+#dropdownNav.show { display: flex; }
+#dropdownNav a {
+    padding: 12px 20px;
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-light);
+}
+#dropdownNav a.active { color: var(--primary); background: rgba(0,210,255,0.05); }
+#dropdownNav a:last-child { border-bottom: none; }
+
+/* --- MAIN DASHBOARD LAYOUT --- */
+.dashboard-wrapper {
+    padding: 0 30px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    width: 100%;
+    max-width: 1000px; /* Thinner than books to keep inputs tight */
+    margin: 0 auto;
+}
+
+.card {
+    border-radius: 20px;
+    padding: 25px;
+}
+
+.section-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.title-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.title-left h3 { font-size: 20px; font-weight: 600; }
+
+/* HORIZONTAL FORM (Modernized) */
+.horizontal-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2x4 Layout instead of huge horizontal */
+    gap: 20px 30px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Make RFID Group span full bottom for scanning naturally */
+.rfid-group {
+    grid-column: 1 / -1; 
+}
+
+.align-bottom {
+    display: flex;
+    align-items: flex-end;
+    grid-column: 1 / -1; 
+}
+
+.form-group label {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-container i {
+    position: absolute;
+    left: 12px;
+    color: var(--text-muted);
+    font-size: 18px;
+}
+
+.input-container input, .input-container select {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: var(--text-main);
+    font-family: inherit;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    appearance: none;
+    cursor: pointer;
+}
+
+/* Specific select dropdown arrow fallback since appearance is none */
+.input-container select {
+    background: rgba(0, 0, 0, 0.4) url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E') no-repeat right 15px top 50%;
+    background-size: 10px;
+}
+
+.input-container input:focus, .input-container select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 15px var(--gold-glow);
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.input-container input:focus + i, .input-container select:focus + i {
+    color: var(--gold);
+}
+
+
+/* BUTTONS */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    font-size: 15px;
+    height: 48px; /* Slightly taller for primary action */
+    width: 100%;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    box-shadow: 0 4px 15px var(--primary-glow);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 210, 255, 0.4);
+    background: #fff;
+    color: var(--secondary);
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    .header-card { padding: 15px 20px; border-radius: 0 0 15px 15px; margin-bottom: 20px; }
+    .dashboard-wrapper { padding: 0 15px 30px; }
+    
+    .desktop-nav { display: none; }
+    .menu-icon { display: flex; }
+
+    .horizontal-form { grid-template-columns: 1fr; } 
+    .rfid-group { grid-column: 1 / -1; }
+    .align-bottom { margin-top: 10px; }
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Library</title>
+    <link rel="stylesheet" href="esp.css">
+</head>
+<body>
+
+<h1>📚 Smart Library Dashboard</h1>
+
+<div class="container">
+
+    <!-- 📡 Live Scan -->
+    <div class="card">
+        <h2>📡 Live RFID Scan</h2>
+        <p id="scan">Waiting for scan...</p>
+    </div>
+
+    <!-- 📖 Activity -->
+    <div class="card">
+        <h2>📖 Activity</h2>
+        <p id="activity">No activity</p>
+    </div>
+
+    <!-- 📊 Log -->
+    <div class="card">
+        <h2>📊 Activity Log</h2>
+        <ul id="log"></ul>
+    </div>
+
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="main.js"></script>
+
+</body>
+</html>

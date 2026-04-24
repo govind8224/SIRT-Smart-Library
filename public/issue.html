@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid Issue System | Smart Library</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/issue.css">
+    <link rel="stylesheet" href="css/global-alerts.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+
+    <div id="glow-bg-top"></div>
+    <div id="glow-bg-bottom"></div>
+
+    <header class="card header-card full-width glass">
+        <div class="user-info">
+            <div class="icon-wrapper cyan">
+                <i class="ph ph-tray-arrow-down"></i>
+            </div>
+            <div class="user-text">
+                <h2>Library <span class="text-gradient">Circulation</span></h2>
+                <p class="subtitle"><i class="ph ph-clock-counter-clockwise"></i> Issue &amp; Return Operations</p>
+            </div>
+        </div>
+        
+        <nav class="nav-links desktop-nav">
+            <a href="three.html"><i class="ph ph-house"></i> Home</a>
+            <a href="books.html"><i class="ph ph-book"></i> Inventory</a>
+            <a href="iot.html"><i class="ph ph-cpu"></i> IoT Scan</a>
+        </nav>
+    </header>
+
+    <main class="dashboard-wrapper">
+
+        <!-- ===== HYBRID OPERATION MODULES ===== -->
+        <section class="hybrid-arena">
+            
+            <!-- AUTOMATED MODULE -->
+            <div class="module-card hardware-module glass card">
+                <div class="module-header">
+                    <i class="ph ph-broadcast text-primary icon-lg"></i>
+                    <h3>Hardware Sync Active</h3>
+                </div>
+                <p class="status-msg">ESP32 Listener is tracking credentials. Scanning an ID will automatically bypass manual entry protocols.</p>
+                
+                <div class="hardware-feed">
+                    <div class="status-badge" id="hardwareStatus">
+                        <i class="ph ph-wifi-high"></i> Listening...
+                    </div>
+                </div>
+            </div>
+
+            <!-- MANUAL MODULE -->
+            <div class="module-card manual-module glass card">
+                <div class="module-header">
+                    <i class="ph ph-keyboard text-gold icon-lg"></i>
+                    <h3>Administrator Override</h3>
+                </div>
+                <p class="status-msg">Physically type the parameters below to override hardware protocols explicitly.</p>
+
+                <form id="issueForm">
+                    <div class="input-group">
+                        <div class="input-container">
+                            <i class="ph ph-identification-badge"></i>
+                            <input type="text" id="userRfid" placeholder="User RFID or Registration ID" required autocomplete="off">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="input-container">
+                            <i class="ph ph-books"></i>
+                            <input type="text" id="bookId" placeholder="Book ID (DB Index)" required autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary" id="executeBtn">
+                            <i class="ph ph-arrow-circle-right"></i> Execute Operation
+                        </button>
+                    </div>
+                </form>
+
+                <div id="operationResult" class="result-msg hidden"></div>
+            </div>
+
+        </section>
+
+        <!-- ===== ISSUED BOOKS TRACKER ===== -->
+        <section class="card issued-tracker-panel glass full-width-section">
+            <div class="tracker-header">
+                <div class="tracker-title">
+                    <div class="icon-wrapper secondary">
+                        <i class="ph ph-scroll"></i>
+                    </div>
+                    <div>
+                        <h3>Issued Books Registry</h3>
+                        <p class="subtitle"><i class="ph ph-users-three"></i> Borrower Identity &amp; Book Status</p>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="issue-search-container">
+                    <div class="search-input-wrap">
+                        <i class="ph ph-magnifying-glass search-icon-issue"></i>
+                        <input type="text" id="issuedSearchInput" placeholder="Search by name, book, RFID..." autocomplete="off">
+                        <button class="clear-search-btn hidden" id="clearSearchBtn" title="Clear search">
+                            <i class="ph ph-x-circle"></i>
+                        </button>
+                    </div>
+                    <button class="btn btn-refresh" id="refreshIssuedBtn">
+                        <i class="ph ph-arrows-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="issue-stats-bar" id="issueStatsBar">
+                <span class="stat-pill active-pill"><i class="ph ph-clock-countdown"></i> <span id="activeCount">—</span> Active</span>
+                <span class="stat-pill returned-pill"><i class="ph ph-check-circle"></i> <span id="returnedCount">—</span> Returned</span>
+                <span class="stat-pill total-pill"><i class="ph ph-stack"></i> <span id="totalCount">—</span> Total</span>
+            </div>
+
+            <!-- Table -->
+            <div class="table-scroll-wrap">
+                <table class="issued-table" id="issuedTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th><i class="ph ph-user-circle"></i> Borrower</th>
+                            <th><i class="ph ph-identification-card"></i> Role</th>
+                            <th><i class="ph ph-graduation-cap"></i> Dept / Course</th>
+                            <th><i class="ph ph-book-open"></i> Book Title</th>
+                            <th><i class="ph ph-barcode"></i> ISBN</th>
+                            <th><i class="ph ph-calendar-check"></i> Issue Date</th>
+                            <th><i class="ph ph-calendar-x"></i> Return Date</th>
+                            <th><i class="ph ph-traffic-signal"></i> Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="issuedTableBody">
+                        <tr class="loading-row">
+                            <td colspan="9">
+                                <div class="loading-spinner">
+                                    <i class="ph ph-spinner-gap spin-anim"></i> Loading registry...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="no-results hidden" id="noIssuedResults">
+                <i class="ph ph-magnifying-glass"></i> No records match your search.
+            </p>
+        </section>
+
+    </main>
+
+    <script src="js/issue.js"></script>
+    <script src="js/global-alerts.js"></script>
+</body>
+</html>

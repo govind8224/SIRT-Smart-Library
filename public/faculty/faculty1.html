@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Faculty Dashboard - SIRT</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="../css/student1.css">
+    <!-- Using the same stylesheet since the core geometry layout works beautifully -->
+</head>
+<body>
+
+    <!-- Subtle Background Glow Effects -->
+    <div id="glow-bg-top"></div>
+    <div id="glow-bg-bottom"></div>
+
+    <input type="text" id="rfidInput" autofocus />
+
+    <main class="dashboard-wrapper">
+        
+        <!-- Header Section -->
+        <header class="card header-card full-width glass">
+            <div class="user-info">
+                <div class="avatar-container" id="userAvatar">
+                    <i class="ph ph-chalkboard-teacher"></i>
+                </div>
+                <div class="user-text">
+                    <h2>Welcome, <span id="name" class="text-gradient">Faculty</span></h2>
+                    <p class="subtitle"><i class="ph ph-chalkboard-teacher"></i> Faculty Portal</p>
+                </div>
+            </div>
+            <button class="btn btn-logout" onclick="logout()">
+                <i class="ph ph-sign-out"></i> Logout
+            </button>
+        </header>
+
+        <!-- Grid Container -->
+        <div class="grid-container">
+            <!-- Profile Details -->
+            <section class="card profile glass">
+                <div class="card-header">
+                    <div class="icon-wrapper"><i class="ph ph-user-circle-gear"></i></div>
+                    <h3>Profile Details</h3>
+                </div>
+                <div class="info-group">
+                    <p><span class="label"><i class="ph ph-buildings"></i> Dept:</span> <strong id="course">---</strong></p> 
+                    <p><span class="label"><i class="ph ph-envelope-simple"></i> Email:</span> <strong id="email">---</strong></p>
+                </div>
+            </section>
+
+            <!-- RFID Scanner -->
+            <section class="card rfid glass">
+                <div class="card-header">
+                    <div class="icon-wrapper cyan"><i class="ph ph-wifi-high"></i></div>
+                    <h3>RFID Scanner</h3>
+                </div>
+                <p class="subtitle text-center">Tap your ID card on the reader</p>
+                <div id="statusBox" class="status-box waiting">
+                    <div class="pulse-ring">
+                        <i class="ph ph-identification-card"></i>
+                    </div>
+                    <span id="statusText">Waiting for scan...</span>
+                </div>
+            </section>
+        </div>
+
+        <!-- Overdue Fine Mapped As Gold Privilege Panel -->
+        <section class="card fine full-width glass" style="border-left: 4px solid #FFD700; background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), rgba(20, 20, 30, 0.4));">
+            <div class="fine-content">
+                <div class="icon-wrapper gold" style="color: #FFD700; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.2);"><i class="ph ph-medal"></i></div>
+                <div>
+                    <h3 style="color: #FFD700;">Account Status</h3>
+                    <p>Total Fine: <strong><span id="fineAmount">Fine Exempt (Faculty Privilege)</span></strong></p>
+                </div>
+            </div>
+            <!-- Payment button has been legally removed for faculty bypasses -->
+            <button disabled class="btn btn-pay" style="opacity: 0.5; background: transparent; color: #aaa; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.1);"><i class="ph ph-check-circle"></i> Cleared</button>
+        </section>
+
+        <!-- Books Table -->
+        <section class="card books full-width glass">
+            <div class="section-title-bar">
+                <div class="title-left">
+                    <div class="icon-wrapper cyan"><i class="ph ph-books"></i></div>
+                    <h3>My Issued References</h3>
+                </div>
+                <div class="search-container">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="searchBook" placeholder="Search Book Title..." onkeyup="searchBook()">
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Author</th>
+                            <th>Expected Return</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookTable">
+                        <!-- Content dynamically loaded via faculty1.js -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="faculty1.js"></script>
+</body>
+</html>
