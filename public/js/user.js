@@ -1,3 +1,6 @@
+const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
+const socket = io(API_BASE);
+
 // --- MENU TOGGLE LOGIC ---
 const menuToggle = document.getElementById('menuToggle');
 const dropdownNav = document.getElementById('dropdownNav');
@@ -14,6 +17,8 @@ document.addEventListener('click', (e) => {
         dropdownNav.classList.remove('show');
     }
 });
+
+// --- RFID AUTO-FILL LISTENER (Handled by global-rfid.js) ---
 
 
 // --- FORM SUBMISSION LOGIC ---

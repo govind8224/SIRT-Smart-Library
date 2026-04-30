@@ -4,9 +4,9 @@
 - [x] Install Git via winget
 - [x] Install GitHub CLI via winget
 - [x] Initialize git repository
-- [ ] Configure git user name and email
-- [ ] Stage all files
-- [ ] Make initial commit
-- [ ] Authenticate with GitHub CLI
-- [ ] Create GitHub repository (SIRT-Smart-Library, public)
-- [ ] Push code to GitHub
+- [x] Configure git user name and email
+- [x] Stage all files
+- [x] Make initial commit
+- [x] Authenticate with GitHub CLI
+- [x] Create GitHub repository (SIRT-Smart-Library, public)
+- [x] Push code to GitHub

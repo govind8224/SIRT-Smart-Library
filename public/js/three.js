@@ -55,6 +55,19 @@ window.logout = function() {
     window.location.href = "login.html";
 };
 
+// --- ESP32 CONFIG PORTAL ACCESS ---
+window.openESP32Config = function() {
+    let savedIP = localStorage.getItem("esp32_ip") || "";
+    const ip = prompt(
+        "Enter the ESP32's IP address to open its Config Portal:\n(You can find it on the LCD screen or Serial Monitor)",
+        savedIP || "192.168.4.1"
+    );
+    if (ip && ip.trim()) {
+        localStorage.setItem("esp32_ip", ip.trim());
+        window.open("http://" + ip.trim(), "_blank");
+    }
+};
+
 document.addEventListener("DOMContentLoaded", function() {
     // Dynamically assign logged in user to the Profile Menu
     let userData = localStorage.getItem("faculty") || localStorage.getItem("student");
@@ -116,92 +129,47 @@ document.addEventListener("DOMContentLoaded", function() {
     revealElements.forEach(el => observer.observe(el));
 
 
-    // --- 3. Real RFID Scan Logic with Socket.io & Database ---
+    // --- 3. UI Synchronization with Global RFID Engine ---
     const scannerRing = document.getElementById('scannerRing');
     const studentCard = document.getElementById('studentCard');
-
-    let currentSessionUserRFID = null;
-    let pendingBookRFID = null;
 
     if (scannerRing) {
         scannerRing.classList.add('scanning');
 
-        // Connect to Socket.io for Real ESP32 Data
-        const socket = typeof io !== "undefined" ? io() : null;
-
-        if (socket) {
-            socket.on("rfid-data", async (data) => {
-                if (data.type === "error") {
-                    console.error("Unknown Card Scanned");
-                    return;
+        // Listen for the global RFID engine to complete a transaction
+        document.addEventListener('rfid-transaction-complete', (e) => {
+            const data = e.detail;
+            console.log("UI Sync: Transaction Complete", data);
+            
+            // If we have a user RFID from the transaction, refresh the UI
+            if (data.user) {
+                scannerRing.classList.remove('scanning');
+                const cardIcon = scannerRing.querySelector('.card-icon');
+                if (cardIcon) {
+                    cardIcon.classList.replace('ph-identification-card', 'ph-check-circle');
+                    cardIcon.style.color = 'var(--success)';
                 }
-
-                // If a BOOK is scanned
-                if (data.role === "book") {
-                    pendingBookRFID = data.rfid;
-
-                    if (!currentSessionUserRFID) {
-                        alert("Book scanned! Please scan a Student or Faculty ID card to confirm the Issue or Return.");
-                        return;
-                    }
-                    
-                    // Both exist, process it!
-                    processTransaction();
-                }
-
-                // If a STUDENT or FACULTY is scanned
+                
+                if (studentCard) studentCard.classList.remove('hidden');
+                
+                // Fetch updated book list
+                fetchAndDisplayUserBooks(data.user);
+            }
+        });
+        
+        // Also listen for simple scans to update UI status (before transaction)
+        if (typeof io !== "undefined") {
+            const socket = io();
+            socket.on("rfid-data", (data) => {
                 if (data.role === "student" || data.role === "faculty") {
-                    currentSessionUserRFID = data.rfid; // Save session
-
-                    scannerRing.classList.remove('scanning');
-                    scannerRing.querySelector('.card-icon').classList.replace('ph-identification-card', 'ph-check-circle');
-                    scannerRing.querySelector('.card-icon').style.color = 'var(--success)';
-                    
-                    studentCard.classList.remove('hidden');
-
-                    // Update UI Card
-                    document.getElementById('studentName').innerText = data.name;
-                    document.getElementById('studentId').innerText = "Role: " + data.role.toUpperCase() + " | RFID: " + data.rfid;
-
-                    // Fetch their active books from Database
-                    fetchAndDisplayUserBooks(data.rfid);
-
-                    if (pendingBookRFID) {
-                        // We had a book waiting!
-                        processTransaction();
+                    if (studentCard) {
+                        studentCard.classList.remove('hidden');
+                        document.getElementById('studentName').innerText = data.name;
+                        document.getElementById('studentId').innerText = "Role: " + data.role.toUpperCase() + " | RFID: " + data.rfid;
+                        fetchAndDisplayUserBooks(data.rfid);
                     }
                 }
             });
-        }
-
-        async function processTransaction() {
-            if (!currentSessionUserRFID || !pendingBookRFID) return;
-
-            try {
-                const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
-                const response = await fetch(`${API_BASE}/issue-return`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        user_rfid: currentSessionUserRFID,
-                        book_id: pendingBookRFID
-                    })
-                });
-
-                const result = await response.json();
-                alert(result.message); // Tell the user if it was Issued or Returned
-                
-                // Refresh the user's book list on screen
-                fetchAndDisplayUserBooks(currentSessionUserRFID);
-
-                // Clear the pending book so they can scan another book for the same user
-                pendingBookRFID = null;
-
-            } catch (err) {
-                console.error("Database Update Error:", err);
-                alert("Failed to process transaction.");
-                pendingBookRFID = null;
-            }
         }
 
         // Helper function to fetch user books
@@ -212,6 +180,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 const books = await res.json();
                 
                 const booksList = document.getElementById('books');
+                if (!booksList) return;
+                
                 booksList.innerHTML = "";
                 
                 let activeCount = 0;
@@ -226,7 +196,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     booksList.innerHTML = `<li>No active books issued. Scan a book to issue it!</li>`;
                 }
                 
-                document.querySelector('.stats p:nth-child(1) b').innerText = activeCount;
+                const statsB = document.querySelector('.stats p:nth-child(1) b');
+                if (statsB) statsB.innerText = activeCount;
             } catch (err) {
                 console.error("Error fetching books:", err);
             }

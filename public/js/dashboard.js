@@ -16,6 +16,13 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
+    // --- RFID UI Sync ---
+    document.addEventListener('rfid-transaction-complete', () => {
+        console.log("Dashboard UI Sync: Transaction Detected");
+        loadDashboardStats();
+        loadRecentIssues();
+    });
+
     let liveChartInstance = null;
 
     // Async Fetch function for API Stats

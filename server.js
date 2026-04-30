@@ -105,12 +105,14 @@ app.post("/books", (req, res) => {
 // 3. Delete Book by ISBN, RFID, or ID
 app.delete("/books/:identifier", (req, res) => {
     const id = req.params.identifier;
-    const isNumber = !isNaN(id);
+    
+    // Only treat as Database ID if it is numeric and shorter than a standard ISBN (10-13 chars)
+    const isDatabaseId = !isNaN(id) && id.length < 10;
 
     // Step 1: Securely locate the exact book Database ID
     let findSql = "SELECT id, book_name FROM books WHERE isbn = ? OR rfid = ?";
     let findParams = [id, id];
-    if (isNumber) {
+    if (isDatabaseId) {
         findSql += " OR id = ?";
         findParams.push(Number(id));
     }
@@ -256,11 +258,12 @@ app.post("/rfid-scan", (req, res) => {
 
         // ❌ Unknown card
         io.emit("rfid-data", {
-            type: "error",
+            type: "unknown",
+            rfid: card_id,
             message: "Unknown Card"
         });
 
-        res.json({ message: "Not Found" });
+        res.json({ message: "Not Found", rfid: card_id });
     });
 });
 
@@ -322,12 +325,12 @@ app.post("/issue-return", (req, res) => {
                 }
 
                 const findUserSql = `
-                    SELECT rfid FROM students WHERE rfid = ? OR username = ?
+                    SELECT rfid FROM students WHERE rfid = ?
                     UNION 
-                    SELECT rfid FROM faculty WHERE rfid = ? OR username = ?
+                    SELECT rfid FROM faculty WHERE rfid = ?
                 `;
 
-                db.query(findUserSql, [user_rfid, user_rfid, user_rfid, user_rfid], (err, users) => {
+                db.query(findUserSql, [user_rfid, user_rfid], (err, users) => {
                     if (err) return res.status(500).json({ message: "Database Error during User Lookup" });
 
                     if (users.length === 0) {
@@ -399,11 +402,12 @@ app.get("/student-fine/:rfid", (req, res) => {
 
         // Step 2: The user is a Student. Calculate dynamically applying a 14-day penalty buffer. 
         // We will assume a native penalty of 10 monetary units per day overdue.
+        // Use COALESCE to calculate fine up to return_date if returned, or NOW() if still issued.
+        // This persists the fine even after the book is returned.
         const sql = `
-            SELECT SUM(GREATEST(DATEDIFF(NOW(), issue_date) - 14, 0)) * 10 AS fine
+            SELECT SUM(GREATEST(DATEDIFF(COALESCE(return_date, NOW()), issue_date) - 14, 0)) * 10 AS fine
             FROM issued_books
             WHERE user_rfid = ? 
-            AND return_date IS NULL
         `;
 
         db.query(sql, [rfid], (err, result) => {

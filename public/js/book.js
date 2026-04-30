@@ -1,5 +1,6 @@
 const API_BASE = window.location.protocol === "file:" ? "http://localhost:3000" : "";
 const API_URL = API_BASE + "/books";
+const socket = io(API_BASE);
 
 document.addEventListener("DOMContentLoaded", () => {
     
@@ -11,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const dropdownNav = document.getElementById("dropdownNav");
     menuToggle.onclick = (e) => { e.stopPropagation(); dropdownNav.classList.toggle("show"); };
     document.onclick = () => dropdownNav.classList.remove("show");
+
+    // --- 2.5 RFID AUTO-FILL LISTENER (Handled by global-rfid.js) ---
 
     // --- 3. CORE CRUD LOGIC ---
     const form = document.getElementById("bookForm");

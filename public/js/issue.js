@@ -9,24 +9,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const hardwareStatus = document.getElementById("hardwareStatus");
 
     // ===================================
-    // 1. HARDWARE IoT AUTO-FILL LISTENER
+    // 1. HARDWARE IoT AUTO-FILL LISTENER (Handled by global-rfid.js)
     // ===================================
-    socket.on("rfid-data", (data) => {
-        hardwareStatus.classList.add("highlight");
+    document.addEventListener('rfid-transaction-complete', (e) => {
+        const data = e.detail;
+        console.log("Issue Page UI Sync:", data);
         
-        if(data.type === "user") {
-            userRfidInput.value = data.rfid;
-            hardwareStatus.innerHTML = `<i class="ph ph-check-square"></i> Identity Snapped`;
-            
-            setTimeout(() => {
-                hardwareStatus.classList.remove("highlight");
-                hardwareStatus.innerHTML = `<i class="ph ph-wifi-high"></i> Listening...`;
-            }, 2000);
-            
-        } else if (data.type === "book") {
-            bookIdInput.value = data.id || data.rfid;
-            hardwareStatus.innerHTML = `<i class="ph ph-check-square"></i> Book Snapped`;
-        }
+        // Visual feedback
+        hardwareStatus.classList.add("highlight");
+        hardwareStatus.innerHTML = `<i class="ph ph-check-square"></i> Transaction Processed`;
+        
+        // Refresh registry table
+        setTimeout(() => {
+            loadIssuedBooks();
+            hardwareStatus.classList.remove("highlight");
+            hardwareStatus.innerHTML = `<i class="ph ph-wifi-high"></i> Listening...`;
+        }, 1500);
     });
 
     // ===================================

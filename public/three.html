@@ -19,57 +19,71 @@
     <div id="three-container"></div>
     <div id="glow-bg"></div>
 
-    <nav class="navbar">
-        <!-- Navigation Links -->
-        <ul class="nav-links" id="navMenu">
-            <li><a href="three.html" class="active"><i class="ph ph-house"></i> Home</a></li>
-            <li class="dropdown">
-                <a href="#" class="dropdown-toggle" onclick="return false;"><i class="ph ph-book-open"></i> Books <i class="ph ph-caret-down"></i></a>
-                <ul class="dropdown-menu">
-                    <li><a href="books.html"><i class="ph ph-list-magnifying-glass"></i> All Books</a></li>
-                    <li><a href="add-book.html"><i class="ph ph-plus-circle"></i> Add Book</a></li>
-                    <li><a href="categories.html"><i class="ph ph-squares-four"></i> Categories</a></li>
-                </ul>
-            </li>
-            <li><a href="iot.html"><i class="ph ph-cpu"></i> IoT</a></li>
-            <li><a href="users.html"><i class="ph ph-users"></i> Users</a></li>
-            <li><a href="issue.html"><i class="ph ph-tray-arrow-up"></i> Issue</a></li>
-        </ul>
+    <nav class="navbar glass-pill">
+        <div class="nav-logo">
+            <i class="ph-fill ph-books"></i>
+            <span>SIRT Library</span>
+        </div>
 
-        <div class="nav-right">
-            <!-- Search -->
-            <div class="search-wrapper" style="position: relative;">
-                <div class="search-container">
-                    <i class="ph ph-magnifying-glass"></i>
-                    <input type="text" id="globalSearchInput" placeholder="Search books..." oninput="executeSearch()" />
+        <!-- Navigation Links & Right Section (Wraps on Mobile) -->
+        <div class="nav-menu-wrapper" id="navMenu">
+            <ul class="nav-links">
+                <li><a href="three.html" class="active"><i class="ph ph-house"></i> <span>Home</span></a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" onclick="return false;"><i class="ph ph-book-open"></i> <span>Books</span> <i class="ph ph-caret-down nav-caret"></i></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="books.html"><i class="ph ph-list-magnifying-glass"></i> All Books</a></li>
+                        <li><a href="add-book.html"><i class="ph ph-plus-circle"></i> Add Book</a></li>
+                        <li><a href="categories.html"><i class="ph ph-squares-four"></i> Categories</a></li>
+                    </ul>
+                </li>
+                <li><a href="iot.html"><i class="ph ph-cpu"></i> <span>IoT</span></a></li>
+                <li><a href="users.html"><i class="ph ph-users"></i> <span>Users</span></a></li>
+                <li><a href="issue.html"><i class="ph ph-tray-arrow-up"></i> <span>Issue</span></a></li>
+                <li><a href="#" onclick="openESP32Config()" title="ESP32 Hardware Settings"><i class="ph ph-gear-six"></i> <span>ESP32</span></a></li>
+            </ul>
+
+            <div class="nav-right">
+                <!-- Search -->
+                <div class="search-wrapper" style="position: relative;">
+                    <div class="search-container interactive-search">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <input type="text" id="globalSearchInput" placeholder="Search..." oninput="executeSearch()" autocomplete="off"/>
+                    </div>
+                    <!-- Mini Dropdown Modal -->
+                    <div class="quick-results-dropdown hidden" id="searchResultsDropdown"></div>
                 </div>
-                <!-- Mini Dropdown Modal -->
-                <div class="quick-results-dropdown hidden" id="searchResultsDropdown"></div>
-            </div>
 
-            <!-- Notifications -->
-            <div class="notification">
-                <i class="ph ph-bell"></i>
-                <span class="badge-count">3</span>
-            </div>
+                <!-- Notifications -->
+                <div class="notification icon-btn" title="Notifications">
+                    <i class="ph ph-bell"></i>
+                    <span class="badge-count pulse">3</span>
+                </div>
 
-            <!-- Profile -->
-            <div class="profile" onclick="toggleProfile()">
-                <img src="https://i.pravatar.cc/40" alt="Profile" />
-                <div class="profile-menu" id="profileMenu">
-                    <p class="user-name" id="adminName">Admin</p>
-                    <a href="dashboard.html"><i class="ph ph-squares-four"></i> Dashboard</a>
-                    <a href="#"><i class="ph ph-gear"></i> Settings</a>
-                    <a href="#" onclick="logout()" class="text-red"><i class="ph ph-sign-out"></i> Logout</a>
+                <!-- Profile -->
+                <div class="profile" onclick="toggleProfile()">
+                    <div class="profile-trigger">
+                        <img src="https://i.pravatar.cc/40" alt="Profile" />
+                        <i class="ph ph-caret-down profile-caret"></i>
+                    </div>
+                    <div class="profile-menu" id="profileMenu">
+                        <div class="profile-header">
+                            <p class="user-name" id="adminName">Admin</p>
+                            <p class="user-role">Administrator</p>
+                        </div>
+                        <a href="dashboard.html"><i class="ph ph-squares-four"></i> Dashboard</a>
+                        <a href="#" onclick="openESP32Config()"><i class="ph ph-gear-six"></i> ESP32 Config</a>
+                        <a href="#"><i class="ph ph-gear"></i> Settings</a>
+                        <div class="menu-divider"></div>
+                        <a href="#" onclick="logout()" class="text-red"><i class="ph ph-sign-out"></i> Logout</a>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Mobile Menu -->
-            <div class="menu-icon" onclick="toggleMenu(this)">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+        <!-- Mobile Menu Icon (Now outside the right section) -->
+        <div class="menu-icon icon-btn" onclick="toggleMenu(this)">
+            <i class="ph ph-list"></i>
         </div>
     </nav>
 
@@ -153,5 +167,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="js/three.js"></script>
     <script src="js/global-alerts.js"></script>
+    <script src="js/global-rfid.js"></script>
 </body>
 </html>

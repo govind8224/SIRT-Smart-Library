@@ -6,10 +6,13 @@
 //  Flow  : Scan card → POST /rfid-scan → Parse JSON response
 //          → Show result on LCD + LED + Buzzer feedback
 //
-//  Server : Node.js at 10.47.61.207:3000
+//  Config : Built-in Web Portal at http://<ESP32-IP>:80
+//           Open in any browser to change server IP wirelessly!
+//  Server : Node.js (IP configured via web portal or Serial)
 // ============================================================
 
 #include <WiFi.h>
+#include <WebServer.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <SPI.h>
@@ -19,18 +22,21 @@
 #include <Preferences.h>
 
 // ─────────────────────────────────────────────
-//  ⚙️  CONFIGURATION  — CHANGE THESE TO MATCH YOUR SETUP
+//  ⚙️  CONFIGURATION  — Defaults (overridden by saved values)
 // ─────────────────────────────────────────────
 
-// 1. Your WiFi credentials
-const char* WIFI_SSID     = "987654321";       // e.g. "SIRT_WiFi"
-const char* WIFI_PASSWORD = "999999990";   // e.g. "12345678"
+// 1. WiFi credentials — These are defaults, can be changed wirelessly!
+String wifiSSID     = "987654321";
+String wifiPassword = "999999990";
 
-// 2. Server IP — This is the default, but can be updated dynamically!
+// 2. Server IP — Also changeable wirelessly!
 String serverIP = "10.248.112.207";
 const int SERVER_PORT = 3000;
 
-// 3. We will dynamically build the endpoint URL in the code!
+// 3. AP Mode — ESP32 creates its own hotspot if WiFi fails
+const char* AP_SSID = "SIRT-Library-Setup";
+const char* AP_PASS = "library123";
+bool isAPMode = false;
 
 // ─────────────────────────────────────────────
 //  📌  PIN DEFINITIONS
@@ -67,6 +73,7 @@ const int SERVER_PORT = 3000;
 MFRC522        rfid(RFID_SS_PIN, RFID_RST_PIN);
 LiquidCrystal_I2C lcd(LCD_I2C_ADDR, LCD_COLS, LCD_ROWS);
 Preferences preferences;
+WebServer configServer(80);  // Built-in web config portal on port 80
 
 // ─────────────────────────────────────────────
 //  GLOBAL STATE
@@ -130,17 +137,186 @@ void lcdShow(String line1, String line2 = "") {
 }
 
 // ─────────────────────────────────────────────
-//  📡  HELPER: WiFi CONNECTION
+//  🌐  WEB CONFIG PORTAL (PASSWORD PROTECTED)
 // ─────────────────────────────────────────────
+// This runs a tiny web server on the ESP32 itself.
+// Open http://<ESP32-IP> in any browser — requires login!
+// Default: admin / sirt2026
+
+const char* PORTAL_USER = "admin";
+const char* PORTAL_PASS = "sirt2026";
+
+bool checkAuth() {
+    if (!configServer.authenticate(PORTAL_USER, PORTAL_PASS)) {
+        configServer.requestAuthentication();
+        return false;
+    }
+    return true;
+}
+
+void setupConfigPortal() {
+    // Shared CSS for all pages
+    String css = "<style>";
+    css += "*{box-sizing:border-box;margin:0;padding:0}";
+    css += "body{font-family:system-ui,sans-serif;background:#0f172a;color:#e2e8f0;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px}";
+    css += ".card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:32px;max-width:420px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,.5)}";
+    css += "h1{font-size:20px;color:#ffd700;margin-bottom:4px}";
+    css += ".sub{font-size:13px;color:#64748b;margin-bottom:24px}";
+    css += ".info{background:#0f172a;border-radius:10px;padding:14px;margin-bottom:16px;font-size:14px}";
+    css += ".info span{color:#38bdf8;font-weight:600}";
+    css += "label{display:block;font-size:13px;color:#94a3b8;margin-bottom:6px}";
+    css += "input{width:100%;padding:12px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font-size:15px;outline:none;margin-bottom:14px}";
+    css += "input:focus{border-color:#ffd700}";
+    css += "button{width:100%;padding:12px;border:none;border-radius:8px;background:linear-gradient(135deg,#ffd700,#f59e0b);color:#0f172a;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px}";
+    css += "button:hover{opacity:.9}";
+    css += ".btn2{background:linear-gradient(135deg,#38bdf8,#3b82f6)}";
+    css += "hr{border:none;border-top:1px solid #334155;margin:20px 0}";
+    css += "</style>";
+
+    // ── HOME PAGE ──
+    configServer.on("/", HTTP_GET, [css]() {
+        if (!checkAuth()) return;
+        String ip = isAPMode ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
+        String mode = isAPMode ? "AP Mode (Setup)" : "Connected";
+
+        String html = "<!DOCTYPE html><html><head>";
+        html += "<meta name='viewport' content='width=device-width,initial-scale=1'>";
+        html += "<title>SIRT Library - ESP32 Config</title>";
+        html += css;
+        html += "</head><body><div class='card'>";
+        html += "<h1>SIRT Smart Library</h1>";
+        html += "<p class='sub'>ESP32 Configuration Portal</p>";
+        html += "<div class='info'>WiFi Status: <span>" + mode + "</span></div>";
+        html += "<div class='info'>WiFi SSID: <span>" + wifiSSID + "</span></div>";
+        html += "<div class='info'>ESP32 IP: <span>" + ip + "</span></div>";
+        html += "<div class='info'>Server IP: <span>" + serverIP + ":" + String(SERVER_PORT) + "</span></div>";
+
+        // WiFi Credentials Form
+        html += "<hr>";
+        html += "<form action='/update-wifi' method='POST'>";
+        html += "<label>WiFi SSID (Hotspot Name)</label>";
+        html += "<input type='text' name='ssid' placeholder='Your WiFi name' value='" + wifiSSID + "' required>";
+        html += "<label>WiFi Password</label>";
+        html += "<input type='password' name='pass' placeholder='Your WiFi password' value='" + wifiPassword + "' required>";
+        html += "<button type='submit' class='btn2'>Save WiFi & Restart</button>";
+        html += "</form>";
+
+        // Server IP Form
+        html += "<form action='/update-ip' method='POST'>";
+        html += "<label>Server IP Address</label>";
+        html += "<input type='text' name='ip' placeholder='e.g. 192.168.1.100' value='" + serverIP + "' required>";
+        html += "<button type='submit'>Save Server IP</button>";
+        html += "</form>";
+
+        html += "</div></body></html>";
+        configServer.send(200, "text/html", html);
+    });
+
+    // ── HANDLE WIFI UPDATE ──
+    configServer.on("/update-wifi", HTTP_POST, []() {
+        if (!checkAuth()) return;
+        if (configServer.hasArg("ssid") && configServer.hasArg("pass")) {
+            String newSSID = configServer.arg("ssid");
+            String newPass = configServer.arg("pass");
+            newSSID.trim();
+            newPass.trim();
+
+            wifiSSID = newSSID;
+            wifiPassword = newPass;
+            preferences.putString("wifiSSID", wifiSSID);
+            preferences.putString("wifiPass", wifiPassword);
+
+            Serial.println("📶 WiFi credentials updated: " + wifiSSID);
+            lcdShow("WiFi Updated!", wifiSSID);
+
+            String html = "<!DOCTYPE html><html><head>";
+            html += "<meta name='viewport' content='width=device-width,initial-scale=1'>";
+            html += "<title>WiFi Updated</title>";
+            html += "<style>body{font-family:system-ui;background:#0f172a;color:#34d399;display:flex;justify-content:center;align-items:center;min-height:100vh;text-align:center}";
+            html += ".box{background:#1e293b;padding:40px;border-radius:16px;border:1px solid #065f46}</style></head><body>";
+            html += "<div class='box'><h2>✅ WiFi Saved!</h2>";
+            html += "<p style='margin-top:12px;color:#94a3b8'>SSID: <b style='color:#ffd700'>" + wifiSSID + "</b></p>";
+            html += "<p style='margin-top:12px;color:#64748b;font-size:13px'>ESP32 will restart in 3 seconds...</p>";
+            html += "</div></body></html>";
+            configServer.send(200, "text/html", html);
+
+            delay(3000);
+            ESP.restart();
+        } else {
+            configServer.send(400, "text/plain", "Missing WiFi fields.");
+        }
+    });
+
+    // ── HANDLE SERVER IP UPDATE ──
+    configServer.on("/update-ip", HTTP_POST, []() {
+        if (!checkAuth()) return;
+        if (configServer.hasArg("ip")) {
+            String newIP = configServer.arg("ip");
+            newIP.trim();
+            if (newIP.length() > 6) {
+                serverIP = newIP;
+                preferences.putString("serverIP", serverIP);
+                Serial.println("🌐 Server IP Updated: " + serverIP);
+                lcdShow("IP Updated!", serverIP);
+                delay(1500);
+                lcdShow("SIRT Library", "Scan RFID Card");
+
+                String html = "<!DOCTYPE html><html><head>";
+                html += "<meta name='viewport' content='width=device-width,initial-scale=1'>";
+                html += "<meta http-equiv='refresh' content='3;url=/' />";
+                html += "<title>IP Updated!</title>";
+                html += "<style>body{font-family:system-ui;background:#0f172a;color:#34d399;display:flex;justify-content:center;align-items:center;min-height:100vh;text-align:center}";
+                html += ".box{background:#1e293b;padding:40px;border-radius:16px;border:1px solid #065f46}</style></head><body>";
+                html += "<div class='box'><h2>✅ Server IP Updated!</h2>";
+                html += "<p style='margin-top:12px;color:#94a3b8'>New IP: <b style='color:#ffd700'>" + serverIP + "</b></p>";
+                html += "<p style='margin-top:8px;color:#64748b;font-size:13px'>Redirecting back in 3 seconds...</p>";
+                html += "</div></body></html>";
+                configServer.send(200, "text/html", html);
+            } else {
+                configServer.send(400, "text/plain", "Invalid IP address.");
+            }
+        } else {
+            configServer.send(400, "text/plain", "Missing IP parameter.");
+        }
+    });
+
+    // ── STATUS ENDPOINT ──
+    configServer.on("/status", HTTP_GET, []() {
+        String ip = isAPMode ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
+        String json = "{\"serverIP\":\"" + serverIP + "\",\"port\":" + String(SERVER_PORT) + ",\"wifi\":\"" + ip + "\",\"ssid\":\"" + wifiSSID + "\",\"apMode\":" + String(isAPMode) + ",\"uptime\":" + String(millis() / 1000) + "}";
+        configServer.send(200, "application/json", json);
+    });
+
+    configServer.begin();
+    Serial.println("🌐 Web Config Portal started at http://" + WiFi.localIP().toString());
+}
+
+// ─────────────────────────────────────────────
+//  📡  HELPER: WiFi CONNECTION (with AP fallback)
+// ─────────────────────────────────────────────
+void startAPMode() {
+    Serial.println("📡 Starting Access Point: " + String(AP_SSID));
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(AP_SSID, AP_PASS);
+    isAPMode = true;
+    IPAddress apIP = WiFi.softAPIP();
+    Serial.println("📡 AP IP: " + apIP.toString());
+    lcdShow("Connect WiFi:", AP_SSID);
+    setLED(LED_RED, true);
+    beepError();
+    delay(2000);
+    lcdShow("Open Browser:", apIP.toString());
+}
+
 void connectWiFi() {
     Serial.print("🔌 Connecting to WiFi: ");
-    Serial.println(WIFI_SSID);
+    Serial.println(wifiSSID);
 
-    lcdShow("Connecting WiFi", WIFI_SSID);
+    lcdShow("Connecting WiFi", wifiSSID);
     setLED(LED_BLUE, true);
 
     WiFi.mode(WIFI_STA);
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
 
     int attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 30) {
@@ -153,17 +329,14 @@ void connectWiFi() {
         Serial.println("\n✅ WiFi Connected!");
         Serial.print("📍 IP Address: ");
         Serial.println(WiFi.localIP());
-
         lcdShow("WiFi Connected!", WiFi.localIP().toString());
         setLED(LED_GREEN, true);
+        isAPMode = false;
         beepSuccess();
         delay(2000);
     } else {
-        Serial.println("\n❌ WiFi Connection Failed!");
-        lcdShow("WiFi FAILED!", "Check credentials");
-        setLED(LED_RED, true);
-        beepError();
-        delay(3000);
+        Serial.println("\n❌ WiFi Failed! Starting AP Mode...");
+        startAPMode();
     }
 }
 
@@ -289,14 +462,17 @@ void setup() {
     Serial.println("  SIRT Smart Library — ESP32 Booting...");
     Serial.println("===========================================");
 
-    // Load saved IP from memory
+    // Load saved settings from flash memory
     preferences.begin("library", false);
     String savedIP = preferences.getString("serverIP", "");
-    if (savedIP != "") {
-        serverIP = savedIP;
-    }
-    Serial.println("📂 Current Server IP: " + serverIP);
-    Serial.println("💡 TIP: To change IP without re-uploading, type 'IP:192.168.X.X' in this Serial Monitor and press Enter!");
+    if (savedIP != "") serverIP = savedIP;
+    String savedSSID = preferences.getString("wifiSSID", "");
+    if (savedSSID != "") wifiSSID = savedSSID;
+    String savedPass = preferences.getString("wifiPass", "");
+    if (savedPass != "") wifiPassword = savedPass;
+
+    Serial.println("📂 Server IP: " + serverIP);
+    Serial.println("📶 WiFi SSID: " + wifiSSID);
 
     // Pin setup
     pinMode(LED_GREEN, OUTPUT);
@@ -319,12 +495,24 @@ void setup() {
     // Show RFID firmware version
     rfid.PCD_DumpVersionToSerial();
 
-    // Connect to WiFi
+    // Connect to WiFi (falls back to AP mode if it fails)
     connectWiFi();
+
+    // Always start config portal — works in both WiFi and AP mode
+    setupConfigPortal();
+    if (isAPMode) {
+        lcdShow("AP:" + String(AP_SSID), WiFi.softAPIP().toString());
+        Serial.println("🌐 Connect to WiFi '" + String(AP_SSID) + "' then open http://" + WiFi.softAPIP().toString());
+    } else {
+        lcdShow(WiFi.localIP().toString(), "Config Portal ON");
+        Serial.println("🌐 Open http://" + WiFi.localIP().toString() + " to configure");
+    }
+    delay(2500);
 
     // Ready
     lcdShow("SIRT Library", "Scan RFID Card");
-    Serial.println("\n🟢 System Ready! Waiting for RFID scan...\n");
+    Serial.println("\n🟢 System Ready! Waiting for RFID scan...");
+    Serial.println("🌐 Open http://" + WiFi.localIP().toString() + " in any browser to change server IP!\n");
 }
 
 // ─────────────────────────────────────────────
@@ -332,7 +520,10 @@ void setup() {
 // ─────────────────────────────────────────────
 void loop() {
 
-    // 1. Check for IP updates via Serial Monitor
+    // 1. Handle web config portal requests (works on battery — no USB needed!)
+    configServer.handleClient();
+
+    // 2. ALSO keep Serial Monitor support (for when USB IS connected)
     if (Serial.available()) {
         String input = Serial.readStringUntil('\n');
         input.trim();
