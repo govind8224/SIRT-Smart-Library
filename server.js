@@ -619,9 +619,70 @@ function getLocalIp() {
     return '0.0.0.0';
 }
 
+// ==========================================
+// 🗄️ AUTO-INITIALIZE DATABASE TABLES
+// ==========================================
+function initTables() {
+    const tables = [
+        `CREATE TABLE IF NOT EXISTS books (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            book_name VARCHAR(255) NOT NULL,
+            author VARCHAR(255),
+            isbn VARCHAR(100) UNIQUE,
+            rfid VARCHAR(100) UNIQUE,
+            slot VARCHAR(100)
+        )`,
+        `CREATE TABLE IF NOT EXISTS students (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) UNIQUE,
+            username VARCHAR(100) UNIQUE,
+            password VARCHAR(255),
+            course VARCHAR(100),
+            rfid VARCHAR(100) UNIQUE
+        )`,
+        `CREATE TABLE IF NOT EXISTS faculty (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) UNIQUE,
+            username VARCHAR(100) UNIQUE,
+            password VARCHAR(255),
+            department VARCHAR(100),
+            rfid VARCHAR(100) UNIQUE
+        )`,
+        `CREATE TABLE IF NOT EXISTS issued_books (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_rfid VARCHAR(100) NOT NULL,
+            book_id INT NOT NULL,
+            issue_date DATETIME NOT NULL,
+            return_date DATETIME,
+            FOREIGN KEY (book_id) REFERENCES books(id)
+        )`
+    ];
+
+    tables.forEach(sql => {
+        db.query(sql, (err) => {
+            if (err) console.error("❌ Table creation error:", err.message);
+        });
+    });
+
+    // Create default admin if not exists
+    db.query("SELECT * FROM faculty WHERE username = 'admin'", (err, results) => {
+        if (err) return;
+        if (results.length === 0) {
+            db.query("INSERT INTO faculty (name, email, username, password, department, rfid) VALUES ('Admin', 'admin@library.com', 'admin', 'admin123', 'Library', 'ADMIN_RFID_001')", (err) => {
+                if (!err) console.log("✅ Default admin created (username: admin, password: admin123)");
+            });
+        }
+    });
+
+    console.log("✅ Database tables initialized");
+}
+
 // ✅ RIGHT: Use server.listen so BOTH Express and Socket.io work
 server.listen(PORT, '0.0.0.0', () => {
     const ip = getLocalIp();
     console.log(`🚀 Server running locally at http://localhost:${PORT}`);
     console.log(`🌐 Network access at http://${ip}:${PORT}`);
+    initTables(); // Auto-create tables on startup
 });

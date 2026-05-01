@@ -6,16 +6,16 @@ services:
     startCommand: npm start
     envVars:
       - key: DB_HOST
-        sync: false
+        value: gateway01.ap-southeast-1.prod.alicloud.tidbcloud.com
       - key: DB_PORT
-        sync: false
+        value: "4000"
       - key: DB_USER
-        sync: false
+        value: 3MXYzq7tunmB4td.root
       - key: DB_PASSWORD
-        sync: false
+        value: r908TlL0fK5yNpYL
       - key: DB_NAME
-        sync: false
+        value: test
       - key: GEMINI_API_KEY
-        sync: false
+        value: AIzaSyAgEkMRY68rNKaFRrYBwNUkzyinsBsTyRY
       - key: NODE_ENV
         value: production
