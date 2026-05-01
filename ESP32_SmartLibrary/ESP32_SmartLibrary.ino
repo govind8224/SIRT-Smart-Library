@@ -26,8 +26,8 @@
 // ─────────────────────────────────────────────
 
 // 1. WiFi credentials — These are defaults, can be changed wirelessly!
-String wifiSSID     = "987654321";
-String wifiPassword = "999999990";
+String wifiSSID     = "123456789";
+String wifiPassword = "00000001";
 
 // 2. Server IP — Also changeable wirelessly!
 String serverIP = "10.248.112.207";
