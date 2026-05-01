@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Configuration | Smart Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/esp-config.css">
+    <link rel="stylesheet" href="css/global-alerts.css">
+</head>
+
+<body>
+
+    <div id="glow-bg-top"></div>
+    <div id="glow-bg-bottom"></div>
+
+    <header class="card header-card full-width glass">
+        <div class="user-info">
+            <div class="icon-wrapper cyan">
+                <i class="ph ph-gear-six"></i>
+            </div>
+            <div class="user-text">
+                <h2>ESP32 <span class="text-gradient">Configuration</span></h2>
+                <p class="subtitle"><i class="ph ph-microchip"></i> Hardware Management Portal</p>
+            </div>
+        </div>
+
+        <nav class="nav-links desktop-nav">
+            <a href="three.html"><i class="ph ph-arrow-left"></i> Back to Home</a>
+        </nav>
+    </header>
+
+    <main class="dashboard-wrapper">
+
+        <!-- Connection Panel -->
+        <section class="card glass connection-panel">
+            <div class="section-title-bar">
+                <div class="title-left">
+                    <div class="icon-wrapper cyan"><i class="ph ph-wifi-high"></i></div>
+                    <div>
+                        <h3>Device Connection</h3>
+                        <p class="panel-subtitle">Connect to your ESP32 module on local network</p>
+                    </div>
+                </div>
+                <div class="status-indicator" id="connectionStatus">
+                    <span class="status-dot offline"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+            </div>
+
+            <div class="connection-form">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label><i class="ph ph-globe"></i> ESP32 IP Address</label>
+                        <div class="input-container">
+                            <input type="text" id="espIpInput" placeholder="e.g., 192.168.1.100" />
+                        </div>
+                        <p class="input-hint">Find this on your ESP32's Serial Monitor or LCD screen</p>
+                    </div>
+                    <div class="input-group">
+                        <label><i class="ph ph-port"></i> Server URL</label>
+                        <div class="input-container">
+                            <input type="text" id="serverUrlInput" placeholder="Auto-detected" readonly />
+                        </div>
+                        <p class="input-hint">Your Smart Library server URL (auto-detected)</p>
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button class="btn btn-primary" id="saveConfigBtn">
+                        <i class="ph ph-floppy-disk"></i> Save Configuration
+                    </button>
+                    <button class="btn btn-outline" id="testConnectionBtn">
+                        <i class="ph ph-plugs-connected"></i> Test Connection
+                    </button>
+                    <button class="btn btn-outline" id="openPortalBtn">
+                        <i class="ph ph-arrow-square-out"></i> Open ESP32 Portal
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Info Cards Grid -->
+        <div class="info-grid">
+
+            <!-- Quick Setup Guide -->
+            <section class="card glass info-card">
+                <div class="info-header">
+                    <div class="icon-wrapper gold"><i class="ph ph-lightning"></i></div>
+                    <h3>Quick Setup Guide</h3>
+                </div>
+                <div class="steps-list">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Power on ESP32</h4>
+                            <p>Connect your ESP32 to power via USB or battery pack</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Connect to WiFi</h4>
+                            <p>Ensure ESP32 is connected to the same WiFi network as your computer</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Find the IP Address</h4>
+                            <p>Check the Serial Monitor or LCD display for the assigned IP</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Enter IP Above</h4>
+                            <p>Paste the IP address in the connection panel and save</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ESP32 Status -->
+            <section class="card glass info-card">
+                <div class="info-header">
+                    <div class="icon-wrapper secondary"><i class="ph ph-pulse"></i></div>
+                    <h3>System Status</h3>
+                </div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">RFID Module</span>
+                        <span class="status-value" id="rfidStatus">
+                            <span class="status-dot pending"></span> Waiting
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">WiFi Signal</span>
+                        <span class="status-value" id="wifiStatus">
+                            <span class="status-dot pending"></span> Unknown
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Server Link</span>
+                        <span class="status-value" id="serverStatus">
+                            <span class="status-dot online"></span> Active
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Last Scan</span>
+                        <span class="status-value" id="lastScan">None</span>
+                    </div>
+                </div>
+
+                <div class="action-links">
+                    <a href="iot.html" class="btn btn-primary full-width">
+                        <i class="ph ph-broadcast"></i> Open Live Scanner
+                    </a>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- ESP32 Arduino Code Reference -->
+        <section class="card glass code-panel">
+            <div class="section-title-bar">
+                <div class="title-left">
+                    <div class="icon-wrapper danger-wrap"><i class="ph ph-code"></i></div>
+                    <div>
+                        <h3>ESP32 Configuration Code</h3>
+                        <p class="panel-subtitle">Update your ESP32 Arduino sketch with your server URL</p>
+                    </div>
+                </div>
+                <button class="btn btn-outline" id="copyCodeBtn">
+                    <i class="ph ph-copy"></i> Copy
+                </button>
+            </div>
+            <div class="code-block">
+                <pre><code id="espCode">// Update these values in your ESP32_SmartLibrary.ino
+
+// WiFi Credentials
+const char* ssid = "YOUR_WIFI_NAME";
+const char* password = "YOUR_WIFI_PASSWORD";
+
+// Smart Library Server URL (use your Render URL for cloud deployment)
+const char* serverURL = "<span id="serverUrlCode">https://sirt-smart-library.onrender.com</span>/rfid-scan";</code></pre>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="js/esp-config.js"></script>
+    <script src="js/global-alerts.js"></script>
+</body>
+
+</html>

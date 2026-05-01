@@ -57,15 +57,7 @@ window.logout = function() {
 
 // --- ESP32 CONFIG PORTAL ACCESS ---
 window.openESP32Config = function() {
-    let savedIP = localStorage.getItem("esp32_ip") || "";
-    const ip = prompt(
-        "Enter the ESP32's IP address to open its Config Portal:\n(You can find it on the LCD screen or Serial Monitor)",
-        savedIP || "192.168.4.1"
-    );
-    if (ip && ip.trim()) {
-        localStorage.setItem("esp32_ip", ip.trim());
-        window.open("http://" + ip.trim(), "_blank");
-    }
+    window.location.href = "esp-config.html";
 };
 
 document.addEventListener("DOMContentLoaded", function() {
