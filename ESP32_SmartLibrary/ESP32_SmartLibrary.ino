@@ -12,6 +12,7 @@
 // ============================================================
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <WebServer.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -33,7 +34,11 @@ String wifiPassword = "00000001";
 String serverIP = "10.248.112.207";
 const int SERVER_PORT = 3000;
 
-// 3. AP Mode — ESP32 creates its own hotspot if WiFi fails
+// 3. Cloud Mode — Set to true to use Render HTTPS instead of local HTTP
+bool useRenderCloud = false;
+String renderURL = "https://sirt-smart-library.onrender.com";
+
+// 4. AP Mode — ESP32 creates its own hotspot if WiFi fails
 const char* AP_SSID = "SIRT-Library-Setup";
 const char* AP_PASS = "library123";
 bool isAPMode = false;
@@ -189,7 +194,15 @@ void setupConfigPortal() {
         html += "<div class='info'>WiFi Status: <span>" + mode + "</span></div>";
         html += "<div class='info'>WiFi SSID: <span>" + wifiSSID + "</span></div>";
         html += "<div class='info'>ESP32 IP: <span>" + ip + "</span></div>";
-        html += "<div class='info'>Server IP: <span>" + serverIP + ":" + String(SERVER_PORT) + "</span></div>";
+        html += "<div class='info'>Mode: <span>" + String(useRenderCloud ? "☁️ Cloud (Render)" : "🏠 Local Server") + "</span></div>";
+        html += "<div class='info'>Server: <span>" + (useRenderCloud ? renderURL : serverIP + ":" + String(SERVER_PORT)) + "</span></div>";
+
+        // Cloud Mode Toggle
+        html += "<hr>";
+        html += "<form action='/toggle-cloud' method='POST'>";
+        html += "<button type='submit' style='background:" + String(useRenderCloud ? "linear-gradient(135deg,#ef4444,#dc2626)" : "linear-gradient(135deg,#22c55e,#16a34a)") + "'>";
+        html += String(useRenderCloud ? "Switch to Local Mode" : "Switch to Cloud Mode (Render)");
+        html += "</button></form>";
 
         // WiFi Credentials Form
         html += "<hr>";
@@ -201,12 +214,15 @@ void setupConfigPortal() {
         html += "<button type='submit' class='btn2'>Save WiFi & Restart</button>";
         html += "</form>";
 
-        // Server IP Form
-        html += "<form action='/update-ip' method='POST'>";
-        html += "<label>Server IP Address</label>";
-        html += "<input type='text' name='ip' placeholder='e.g. 192.168.1.100' value='" + serverIP + "' required>";
-        html += "<button type='submit'>Save Server IP</button>";
-        html += "</form>";
+        // Server IP Form (only for local mode)
+        if (!useRenderCloud) {
+            html += "<form action='/update-ip' method='POST'>";
+            html += "<label>Server IP Address</label>";
+            html += "<input type='text' name='ip' placeholder='e.g. 192.168.1.100' value='" + serverIP + "' required>";
+            html += "<button type='submit'>Save Server IP</button>";
+            html += "</form>";
+        }
+
 
         html += "</div></body></html>";
         configServer.send(200, "text/html", html);
@@ -280,10 +296,36 @@ void setupConfigPortal() {
         }
     });
 
+    // ── TOGGLE CLOUD MODE ──
+    configServer.on("/toggle-cloud", HTTP_POST, []() {
+        if (!checkAuth()) return;
+        useRenderCloud = !useRenderCloud;
+        preferences.putBool("cloudMode", useRenderCloud);
+
+        String modeStr = useRenderCloud ? "Cloud (Render)" : "Local Server";
+        Serial.println("☁️ Mode switched to: " + modeStr);
+        lcdShow("Mode: " + modeStr, useRenderCloud ? "Render HTTPS" : serverIP);
+
+        String html = "<!DOCTYPE html><html><head>";
+        html += "<meta name='viewport' content='width=device-width,initial-scale=1'>";
+        html += "<meta http-equiv='refresh' content='2;url=/' />";
+        html += "<title>Mode Changed</title>";
+        html += "<style>body{font-family:system-ui;background:#0f172a;color:#34d399;display:flex;justify-content:center;align-items:center;min-height:100vh;text-align:center}";
+        html += ".box{background:#1e293b;padding:40px;border-radius:16px;border:1px solid #065f46}</style></head><body>";
+        html += "<div class='box'><h2>✅ Mode Changed!</h2>";
+        html += "<p style='margin-top:12px;color:#94a3b8'>Now using: <b style='color:#ffd700'>" + modeStr + "</b></p>";
+        html += "<p style='margin-top:8px;color:#64748b;font-size:13px'>Redirecting back...</p>";
+        html += "</div></body></html>";
+        configServer.send(200, "text/html", html);
+
+        delay(1500);
+        lcdShow("SIRT Library", "Scan RFID Card");
+    });
+
     // ── STATUS ENDPOINT ──
     configServer.on("/status", HTTP_GET, []() {
         String ip = isAPMode ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
-        String json = "{\"serverIP\":\"" + serverIP + "\",\"port\":" + String(SERVER_PORT) + ",\"wifi\":\"" + ip + "\",\"ssid\":\"" + wifiSSID + "\",\"apMode\":" + String(isAPMode) + ",\"uptime\":" + String(millis() / 1000) + "}";
+        String json = "{\"serverIP\":\"" + serverIP + "\",\"port\":" + String(SERVER_PORT) + ",\"wifi\":\"" + ip + "\",\"ssid\":\"" + wifiSSID + "\",\"apMode\":" + String(isAPMode) + ",\"cloudMode\":" + String(useRenderCloud) + ",\"renderURL\":\"" + renderURL + "\",\"uptime\":" + String(millis() / 1000) + "}";
         configServer.send(200, "application/json", json);
     });
 
@@ -355,14 +397,30 @@ void sendRFIDToServer(String cardUID) {
     lcdShow("Scanning...", cardUID);
     setLED(LED_BLUE, true);
 
-    // Dynamically build the URL from the server IP and port
-    String targetURL = "http://" + serverIP + ":" + String(SERVER_PORT) + "/rfid-scan";
+    // Build URL based on mode (local HTTP or Render HTTPS)
+    String targetURL;
+    if (useRenderCloud) {
+        targetURL = renderURL + "/rfid-scan";
+    } else {
+        targetURL = "http://" + serverIP + ":" + String(SERVER_PORT) + "/rfid-scan";
+    }
     Serial.println("🔗 Target URL: " + targetURL);
 
-    WiFiClient client;
     HTTPClient http;
-    http.begin(client, targetURL);
+
+    if (useRenderCloud) {
+        // HTTPS mode for Render cloud deployment
+        WiFiClientSecure secureClient;
+        secureClient.setInsecure();  // Skip cert verification (OK for IoT)
+        http.begin(secureClient, targetURL);
+    } else {
+        // HTTP mode for local network
+        WiFiClient client;
+        http.begin(client, targetURL);
+    }
+
     http.addHeader("Content-Type", "application/json");
+    http.setTimeout(10000); // 10 second timeout for cloud requests
 
     // Build JSON payload — matches what server.js /rfid-scan expects
     String payload = "{\"card_id\":\"" + cardUID + "\"}";
@@ -470,9 +528,11 @@ void setup() {
     if (savedSSID != "") wifiSSID = savedSSID;
     String savedPass = preferences.getString("wifiPass", "");
     if (savedPass != "") wifiPassword = savedPass;
+    useRenderCloud = preferences.getBool("cloudMode", false);
 
     Serial.println("📂 Server IP: " + serverIP);
     Serial.println("📶 WiFi SSID: " + wifiSSID);
+    Serial.println("☁️ Cloud Mode: " + String(useRenderCloud ? "ON (Render)" : "OFF (Local)"));
 
     // Pin setup
     pinMode(LED_GREEN, OUTPUT);
