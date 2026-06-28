@@ -13,7 +13,6 @@ const io = socketIo(server, {
 });
 
 // Middleware
-// Middleware
 app.use(cors({
     origin: "*", // Sabhi domains/IPs ko allow karega
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -23,6 +22,16 @@ app.use(cors({
 // Pre-flight fix: Sabhi OPTIONS requests ko turant OK bolo
 app.options(/.*/, cors());
 app.use(express.json());
+
+// ✅ 1. NEW: JSON Error Catcher (Prevents the app from throwing silent 400s)
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        console.error("❌ JSON Syntax Error from ESP32:", err.message);
+        return res.status(400).json({ message: "Invalid JSON format sent to server" });
+    }
+    next();
+});
+
 app.use(express.static("public"));
 
 // ✅ Use single DB connection
@@ -223,10 +232,22 @@ app.post("/login", (req, res) => {
 });
 
 // ==========================================
-// 📡 RFID SCAN API (UPGRADED FOR TWO TABLES)
+// 📡 RFID SCAN API (UPGRADED FOR DEBUGGING)
 // ==========================================
 app.post("/rfid-scan", (req, res) => {
+    // 🔍 1. Log everything to the console to see what the ESP32 is sending
+    console.log("📥 Received Request Headers:", req.headers['content-type']);
+    console.log("📦 Received Request Body:", req.body);
+
     const { card_id } = req.body;
+
+    // 🛡️ 2. If card_id is missing, manually send 400 and stop
+    if (!card_id) {
+        console.error("❌ Error: card_id is missing in the request!");
+        return res.status(400).json({ 
+            message: "Bad Request: card_id is required. Make sure ESP32 sends {'card_id': 'UID'}" 
+        });
+    }
 
     // Use UNION to search students, faculty, and books tables at the same time
     const sql = `
@@ -238,7 +259,10 @@ app.post("/rfid-scan", (req, res) => {
     `;
 
     db.query(sql, [card_id, card_id, card_id], (err, user) => {
-        if (err) return res.status(500).json({ message: "DB Error" });
+        if (err) {
+            console.error("❌ DB Error:", err);
+            return res.status(500).json({ message: "DB Error" });
+        }
 
         if (user.length > 0) {
             const roleFound = user[0].role;
@@ -252,11 +276,13 @@ app.post("/rfid-scan", (req, res) => {
             };
 
             io.emit("rfid-data", eventPayload);
+            console.log(`✅ ${roleFound.toUpperCase()} Found:`, user[0].name);
 
             return res.json({ message: `${roleFound} Found`, data: user[0] });
         }
 
         // ❌ Unknown card
+        console.log("⚠️ Unknown Card Scanned:", card_id);
         io.emit("rfid-data", {
             type: "unknown",
             rfid: card_id,
@@ -597,8 +623,6 @@ app.get("/", (req, res) => {
     res.send("🚀 Smart Library Server Running...");
 });
 
-// Server start
-// Server start
 // ==========================================
 // 🚀 SERVER START (FIXED FOR SOCKET.IO)
 // ==========================================
