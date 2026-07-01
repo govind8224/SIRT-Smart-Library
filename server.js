@@ -2,8 +2,6 @@ require("dotenv").config();
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
@@ -232,7 +230,7 @@ app.post("/login", (req, res) => {
             return res.status(401).json({ message: "Invalid username or password" });
         }
     });
-});
+});        
 
 // ==========================================
 // 📡 RFID SCAN API (UPGRADED FOR DEBUGGING)
